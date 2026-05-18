@@ -1,0 +1,39 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player_scene"]
+
+[node name="Main" type="Node2D"]
+
+[node name="MovementReference" type="Node2D" parent="."]
+
+[node name="HorizontalAxis" type="Line2D" parent="MovementReference"]
+points = PackedVector2Array(-640, 0, 640, 0)
+width = 2.0
+default_color = Color(0.25, 0.31, 0.36, 1)
+
+[node name="VerticalAxis" type="Line2D" parent="MovementReference"]
+points = PackedVector2Array(0, -360, 0, 360)
+width = 2.0
+default_color = Color(0.25, 0.31, 0.36, 1)
+
+[node name="NorthMarker" type="Polygon2D" parent="MovementReference"]
+position = Vector2(0, -160)
+color = Color(0.74, 0.56, 0.32, 1)
+polygon = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+
+[node name="EastMarker" type="Polygon2D" parent="MovementReference"]
+position = Vector2(160, 0)
+color = Color(0.74, 0.56, 0.32, 1)
+polygon = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+
+[node name="SouthMarker" type="Polygon2D" parent="MovementReference"]
+position = Vector2(0, 160)
+color = Color(0.74, 0.56, 0.32, 1)
+polygon = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+
+[node name="WestMarker" type="Polygon2D" parent="MovementReference"]
+position = Vector2(-160, 0)
+color = Color(0.74, 0.56, 0.32, 1)
+polygon = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+
+[node name="Player" parent="." instance=ExtResource("1_player_scene")]
