@@ -1,0 +1,203 @@
+version: 1
+policy:
+  default_write_access: deny
+  enforcement_point: orchestrator_preflight
+  fail_closed: true
+
+global:
+  protected_branches:
+    - main
+  require_human_confirmation_for:
+    - merge_to_main
+    - force_push
+    - destructive_git_operation
+    - project_settings_change
+  always_forbidden_paths:
+    - .git/**
+    - .godot/**
+    - project.godot
+    - scenes/main/Main.tscn
+    - icon.svg
+    - icon.svg.import
+
+current_scaffold_task:
+  allowed_create_or_modify:
+    - .agent/**
+    - scripts/orchestrator.py
+    - scripts/agent_runner.py
+    - scripts/github_tasks.py
+    - scripts/git_ops.py
+    - scripts/godot_test_runner.py
+    - scripts/README_AUTOMATION.md
+  forbidden_existing_game_paths:
+    - scenes/**
+    - scripts/player/**
+    - scripts/enemy/**
+    - scripts/weapon/**
+    - scripts/ui/**
+    - scripts/system/**
+    - resources/**
+    - assets/**
+
+agents:
+  pm_agent:
+    may_read:
+      - AGENTS.md
+      - README.md
+      - docs/**
+      - .agent/**
+    may_modify:
+      - docs/**
+      - .agent/tasks*.json
+      - .agent/runs/**
+    must_not_modify:
+      - scenes/**
+      - scripts/**/*.gd
+      - resources/**
+      - assets/**
+      - project.godot
+
+  skill_agent:
+    may_read:
+      - AGENTS.md
+      - docs/**
+      - scripts/**
+      - resources/**
+      - scenes/**
+    may_modify:
+      - scripts/weapon/**
+      - scripts/combat/**
+      - scripts/progression/**
+      - resources/weapons/**
+      - resources/upgrades/**
+      - docs/**
+    must_not_modify:
+      - scripts/player/**
+      - scripts/enemy/**
+      - scripts/ui/**
+      - scenes/main/Main.tscn
+      - project.godot
+
+  menu_agent:
+    may_read:
+      - AGENTS.md
+      - docs/**
+      - scripts/**
+      - scenes/**
+    may_modify:
+      - scripts/ui/**
+      - scenes/ui/**
+      - resources/ui/**
+      - docs/**
+    must_not_modify:
+      - scripts/player/**
+      - scripts/enemy/**
+      - scripts/weapon/**
+      - scenes/main/Main.tscn
+      - project.godot
+
+  feedback_agent:
+    may_read:
+      - AGENTS.md
+      - docs/**
+      - scripts/**
+      - scenes/**
+      - assets/**
+    may_modify:
+      - scripts/feedback/**
+      - scripts/combat/**
+      - scenes/vfx/**
+      - assets/vfx/**
+      - assets/audio/**
+      - docs/**
+    must_not_modify:
+      - scenes/main/Main.tscn
+      - scripts/player/**
+      - scripts/enemy/**
+      - scripts/weapon/**
+      - scripts/ui/**
+      - project.godot
+
+  balance_agent:
+    may_read:
+      - AGENTS.md
+      - docs/**
+      - scripts/**
+      - resources/**
+    may_modify:
+      - resources/enemies/**
+      - resources/weapons/**
+      - resources/upgrades/**
+      - resources/waves/**
+      - resources/loot/**
+      - docs/**
+    must_not_modify:
+      - scenes/**
+      - scripts/player/**
+      - scripts/enemy/**
+      - scripts/weapon/**
+      - scripts/ui/**
+      - project.godot
+
+  qa_agent:
+    may_read:
+      - AGENTS.md
+      - README.md
+      - docs/**
+      - scripts/**
+      - scenes/**
+      - resources/**
+      - .agent/**
+    may_modify:
+      - docs/**
+      - .agent/runs/**
+    must_not_modify:
+      - scenes/**
+      - scripts/**/*.gd
+      - resources/**
+      - assets/**
+      - project.godot
+
+  reviewer_agent:
+    may_read:
+      - AGENTS.md
+      - README.md
+      - docs/**
+      - scripts/**
+      - scenes/**
+      - resources/**
+      - .agent/**
+    may_modify:
+      - .agent/runs/**
+    must_not_modify:
+      - scenes/**
+      - scripts/**/*.gd
+      - resources/**
+      - assets/**
+      - project.godot
+
+  automation_architect_agent:
+    may_read:
+      - AGENTS.md
+      - README.md
+      - docs/**
+      - .agent/**
+      - scripts/**
+    may_modify:
+      - .agent/**
+      - scripts/orchestrator.py
+      - scripts/agent_runner.py
+      - scripts/github_tasks.py
+      - scripts/git_ops.py
+      - scripts/godot_test_runner.py
+      - scripts/README_AUTOMATION.md
+    must_not_modify:
+      - scenes/**
+      - scripts/player/**
+      - scripts/enemy/**
+      - scripts/weapon/**
+      - scripts/ui/**
+      - scripts/system/**
+      - resources/**
+      - assets/**
+      - project.godot

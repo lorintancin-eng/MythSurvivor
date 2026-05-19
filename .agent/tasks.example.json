@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "project": "MythSurvivor",
+  "description": "Example task package for the scaffold orchestrator. This file is not an active implementation request.",
+  "tasks": [
+    {
+      "id": "MS-AUTO-001",
+      "title": "Example: plan an original skill upgrade",
+      "type": "feature",
+      "status": "example",
+      "priority": "medium",
+      "requested_by": "human",
+      "summary": "Demonstrates how PM, Skill, QA, and Reviewer agents would coordinate on a future skill task.",
+      "constraints": [
+        "Keep all design, names, values, and effects original to MythSurvivor.",
+        "Do not modify project.godot or scenes/main/Main.tscn.",
+        "Use Godot 4.x and GDScript conventions.",
+        "Follow .agent/permissions.yaml before writing files."
+      ],
+      "agents": [
+        "pm_agent",
+        "skill_agent",
+        "qa_agent",
+        "reviewer_agent"
+      ],
+      "allowed_paths": [
+        "scripts/weapon/**",
+        "scripts/combat/**",
+        "scripts/progression/**",
+        "resources/weapons/**",
+        "resources/upgrades/**",
+        "docs/**"
+      ],
+      "acceptance_criteria": [
+        "PM output contains scoped subtasks, dependencies, and validation steps.",
+        "Implementation stays inside the approved write set.",
+        "QA report includes Godot headless smoke check status or a clear reason it could not run.",
+        "Reviewer report has no blocking findings before PR creation."
+      ],
+      "subtasks": [
+        {
+          "id": "MS-AUTO-001-PM",
+          "agent": "pm_agent",
+          "goal": "Break the request into implementation and validation subtasks.",
+          "expected_output": "task_breakdown"
+        },
+        {
+          "id": "MS-AUTO-001-SKILL",
+          "agent": "skill_agent",
+          "goal": "Implement only after PM scope and permissions are approved.",
+          "expected_output": "code_patch"
+        },
+        {
+          "id": "MS-AUTO-001-QA",
+          "agent": "qa_agent",
+          "goal": "Run smoke checks and produce regression notes.",
+          "expected_output": "qa_report"
+        },
+        {
+          "id": "MS-AUTO-001-REVIEW",
+          "agent": "reviewer_agent",
+          "goal": "Review diff, policy compliance, and PR readiness.",
+          "expected_output": "review_report"
+        }
+      ]
+    },
+    {
+      "id": "MS-AUTO-002",
+      "title": "Example: tune early wave pressure",
+      "type": "balance",
+      "status": "example",
+      "priority": "low",
+      "requested_by": "human",
+      "summary": "Demonstrates a future balance-only task that should prefer data changes over code changes.",
+      "agents": [
+        "pm_agent",
+        "balance_agent",
+        "qa_agent",
+        "reviewer_agent"
+      ],
+      "allowed_paths": [
+        "resources/enemies/**",
+        "resources/waves/**",
+        "resources/upgrades/**",
+        "docs/**"
+      ],
+      "acceptance_criteria": [
+        "Tuning intent is documented.",
+        "No commercial game balance tables are copied.",
+        "QA report covers smoke checks and a manual playtest checklist.",
+        "Reviewer confirms scope and originality."
+      ]
+    }
+  ]
+}

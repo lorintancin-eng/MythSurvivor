@@ -1,0 +1,121 @@
+version: 1
+project:
+  name: MythSurvivor
+  engine: Godot 4.x
+  primary_language: GDScript
+  genre: top_down_auto_battle_roguelite_survivor
+  automation_stage: scaffold_only
+
+global_rules:
+  - Read AGENTS.md and relevant docs before planning or editing.
+  - Keep all game content, names, mechanics, UI layouts, and balance original.
+  - Prefer small, reviewable changes with clear ownership.
+  - Do not merge into main automatically. Human confirmation is always required.
+  - Do not modify project.godot, Main.tscn, scenes, or gameplay code unless a future task explicitly allows it.
+  - Use Godot 4.x and GDScript conventions for game work.
+
+agents:
+  pm_agent:
+    display_name: PM Agent
+    prompt_path: .agent/prompts/pm_agent.md
+    purpose: Break incoming product goals into scoped tasks with acceptance criteria.
+    responsibilities:
+      - Clarify MVP or post-MVP scope.
+      - Split work into agent-owned subtasks.
+      - Define expected files, constraints, risks, and validation steps.
+      - Produce a task package for the orchestrator.
+    outputs:
+      - task_breakdown
+      - acceptance_criteria
+      - agent_assignments
+      - dependency_order
+
+  skill_agent:
+    display_name: Skill Agent
+    prompt_path: .agent/prompts/skill_agent.md
+    purpose: Implement original skill, weapon, upgrade, and combat-growth changes when assigned.
+    responsibilities:
+      - Work only inside approved combat, weapon, upgrade, or resource paths.
+      - Keep systems data-driven where practical.
+      - Preserve deterministic combat calculations where practical.
+      - Document any content intent that affects balance or future tuning.
+    outputs:
+      - code_patch
+      - data_patch
+      - implementation_notes
+      - validation_notes
+
+  menu_agent:
+    display_name: Menu Agent
+    prompt_path: .agent/prompts/menu_agent.md
+    purpose: Implement menu, HUD, pause, level-up, and game-over UI work when assigned.
+    responsibilities:
+      - Create original UI flows and layout.
+      - Keep UI display logic separate from core gameplay rules.
+      - Coordinate data contracts with gameplay agents.
+      - Preserve Godot scene references and Control node conventions.
+    outputs:
+      - ui_patch
+      - scene_or_resource_notes
+      - data_contract_notes
+      - validation_notes
+
+  feedback_agent:
+    display_name: Feedback Agent
+    prompt_path: .agent/prompts/feedback_agent.md
+    purpose: Improve readable player feedback, hit response, visual effects hooks, and audio hooks when assigned.
+    responsibilities:
+      - Avoid adding unlicensed external assets.
+      - Use placeholder-only content only when clearly marked and approved.
+      - Keep feedback signals decoupled from core gameplay calculations.
+      - Protect performance in high-frequency combat paths.
+    outputs:
+      - feedback_patch
+      - asset_or_placeholder_notes
+      - performance_notes
+      - validation_notes
+
+  balance_agent:
+    display_name: Balance Agent
+    prompt_path: .agent/prompts/balance_agent.md
+    purpose: Tune original numeric balance and progression data when assigned.
+    responsibilities:
+      - Keep numbers original and justified by project goals.
+      - Record tuning intent, assumptions, and expected pressure curves.
+      - Avoid copying commercial game values or progression tables.
+      - Prefer data changes over gameplay logic changes.
+    outputs:
+      - balance_patch
+      - tuning_rationale
+      - risk_notes
+      - validation_notes
+
+  qa_agent:
+    display_name: QA Agent
+    prompt_path: .agent/prompts/qa_agent.md
+    purpose: Verify changes through automated and manual checks before review.
+    responsibilities:
+      - Run available Godot headless smoke checks.
+      - Check scene and script parse stability.
+      - Produce focused regression notes.
+      - Report blockers without fixing unrelated systems.
+    outputs:
+      - qa_report
+      - test_commands
+      - pass_fail_status
+      - reproduction_steps
+
+  reviewer_agent:
+    display_name: Reviewer Agent
+    prompt_path: .agent/prompts/reviewer_agent.md
+    purpose: Review diffs for correctness, scope control, maintainability, and policy compliance.
+    responsibilities:
+      - Prioritize bugs, regressions, broken references, and missing tests.
+      - Check that the patch stays within assigned paths.
+      - Check originality and license boundaries.
+      - Decide whether the branch is ready for PR or needs revision.
+    outputs:
+      - review_report
+      - blocking_findings
+      - non_blocking_findings
+      - pr_readiness
