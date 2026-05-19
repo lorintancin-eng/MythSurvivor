@@ -12,6 +12,14 @@ const HEALTH_BAR_HEIGHT: float = 5.0
 const DEFAULT_LEVEL_UP_PANEL_SCENE: PackedScene = preload("res://scenes/ui/LevelUpPanel.tscn")
 const UPGRADE_TALISMAN_DAMAGE := &"talisman_damage"
 const UPGRADE_TALISMAN_COOLDOWN := &"talisman_cooldown"
+const UPGRADE_UNLOCK_FLYING_SWORD := &"unlock_flying_sword"
+const UPGRADE_FLYING_SWORD_DAMAGE := &"flying_sword_damage"
+const UPGRADE_FLYING_SWORD_COOLDOWN := &"flying_sword_cooldown"
+const UPGRADE_FLYING_SWORD_PIERCE := &"flying_sword_pierce"
+const UPGRADE_UNLOCK_THUNDER_LAW := &"unlock_thunder_law"
+const UPGRADE_THUNDER_LAW_DAMAGE := &"thunder_law_damage"
+const UPGRADE_THUNDER_LAW_COOLDOWN := &"thunder_law_cooldown"
+const UPGRADE_THUNDER_LAW_RADIUS := &"thunder_law_radius"
 const UPGRADE_MOVE_SPEED := &"move_speed"
 
 @export var move_speed: float = 180.0
@@ -31,15 +39,21 @@ var _is_dead: bool = false
 var _pending_upgrade_choices: int = 0
 var _is_selecting_upgrade: bool = false
 var _was_tree_paused_before_level_up: bool = false
+var _is_flying_sword_unlocked: bool = false
+var _is_thunder_law_unlocked: bool = false
 var _upgrade_rng := RandomNumberGenerator.new()
 var _level_up_panel: LevelUpPanel
 
 @onready var _health_fill: Polygon2D = $HealthBar/Fill
 @onready var _talisman_weapon: TalismanWeapon = $TalismanWeapon
+@onready var _flying_sword_weapon: FlyingSwordWeapon = $FlyingSwordWeapon
+@onready var _thunder_law_weapon: ThunderLawWeapon = $ThunderLawWeapon
 
 
 func _ready() -> void:
 	_ensure_input_actions()
+	_set_weapon_unlocked(_flying_sword_weapon, _is_flying_sword_unlocked)
+	_set_weapon_unlocked(_thunder_law_weapon, _is_thunder_law_unlocked)
 	max_hp = maxf(max_hp, 1.0)
 	current_hp = max_hp
 	level = maxi(level, 1)
@@ -237,7 +251,7 @@ func _get_random_upgrade_options() -> Array[Dictionary]:
 
 
 func _get_upgrade_pool() -> Array[Dictionary]:
-	return [
+	var pool: Array[Dictionary] = [
 		{
 			"id": UPGRADE_TALISMAN_DAMAGE,
 			"title": "Talisman Damage +10",
@@ -254,6 +268,54 @@ func _get_upgrade_pool() -> Array[Dictionary]:
 			"description": "Increase player movement speed by 10%."
 		}
 	]
+
+	if _is_flying_sword_unlocked:
+		pool.append({
+			"id": UPGRADE_FLYING_SWORD_DAMAGE,
+			"title": "Flying Sword Damage +8",
+			"description": "Increase flying sword projectile damage by 8."
+		})
+		pool.append({
+			"id": UPGRADE_FLYING_SWORD_COOLDOWN,
+			"title": "Flying Sword Cooldown -10%",
+			"description": "Launch flying sword projectiles 10% faster."
+		})
+		pool.append({
+			"id": UPGRADE_FLYING_SWORD_PIERCE,
+			"title": "Flying Sword Pierce +1",
+			"description": "Flying sword projectiles can pierce 1 more enemy."
+		})
+	else:
+		pool.append({
+			"id": UPGRADE_UNLOCK_FLYING_SWORD,
+			"title": "Unlock Flying Sword",
+			"description": "Gain an orbit-forged sword that seeks nearby enemies."
+		})
+
+	if _is_thunder_law_unlocked:
+		pool.append({
+			"id": UPGRADE_THUNDER_LAW_DAMAGE,
+			"title": "Thunder Charm Damage +10",
+			"description": "Increase thunder charm strike damage by 10."
+		})
+		pool.append({
+			"id": UPGRADE_THUNDER_LAW_COOLDOWN,
+			"title": "Thunder Charm Cooldown -10%",
+			"description": "Call thunder charm strikes 10% faster."
+		})
+		pool.append({
+			"id": UPGRADE_THUNDER_LAW_RADIUS,
+			"title": "Thunder Charm Range +16",
+			"description": "Increase thunder charm strike radius by 16."
+		})
+	else:
+		pool.append({
+			"id": UPGRADE_UNLOCK_THUNDER_LAW,
+			"title": "Unlock Thunder Charm",
+			"description": "Gain a thunder charm that strikes clustered enemies."
+		})
+
+	return pool
 
 
 func _on_upgrade_selected(upgrade_id: StringName) -> void:
@@ -276,6 +338,30 @@ func _apply_upgrade(upgrade_id: StringName) -> void:
 		UPGRADE_TALISMAN_COOLDOWN:
 			if _talisman_weapon != null:
 				_talisman_weapon.cooldown = maxf(_talisman_weapon.cooldown * 0.9, WeaponBase.MIN_COOLDOWN)
+		UPGRADE_UNLOCK_FLYING_SWORD:
+			_is_flying_sword_unlocked = true
+			_set_weapon_unlocked(_flying_sword_weapon, true)
+		UPGRADE_FLYING_SWORD_DAMAGE:
+			if _flying_sword_weapon != null:
+				_flying_sword_weapon.damage += 8.0
+		UPGRADE_FLYING_SWORD_COOLDOWN:
+			if _flying_sword_weapon != null:
+				_flying_sword_weapon.cooldown = maxf(_flying_sword_weapon.cooldown * 0.9, WeaponBase.MIN_COOLDOWN)
+		UPGRADE_FLYING_SWORD_PIERCE:
+			if _flying_sword_weapon != null:
+				_flying_sword_weapon.pierce_count += 1
+		UPGRADE_UNLOCK_THUNDER_LAW:
+			_is_thunder_law_unlocked = true
+			_set_weapon_unlocked(_thunder_law_weapon, true)
+		UPGRADE_THUNDER_LAW_DAMAGE:
+			if _thunder_law_weapon != null:
+				_thunder_law_weapon.damage += 10.0
+		UPGRADE_THUNDER_LAW_COOLDOWN:
+			if _thunder_law_weapon != null:
+				_thunder_law_weapon.cooldown = maxf(_thunder_law_weapon.cooldown * 0.9, WeaponBase.MIN_COOLDOWN)
+		UPGRADE_THUNDER_LAW_RADIUS:
+			if _thunder_law_weapon != null:
+				_thunder_law_weapon.radius += 16.0
 		UPGRADE_MOVE_SPEED:
 			move_speed *= 1.1
 		_:
@@ -283,3 +369,13 @@ func _apply_upgrade(upgrade_id: StringName) -> void:
 			return
 
 	upgrade_applied.emit(upgrade_id)
+
+
+func _set_weapon_unlocked(weapon: WeaponBase, is_unlocked: bool) -> void:
+	if weapon == null:
+		return
+
+	if is_unlocked:
+		weapon.process_mode = Node.PROCESS_MODE_INHERIT
+	else:
+		weapon.process_mode = Node.PROCESS_MODE_DISABLED
