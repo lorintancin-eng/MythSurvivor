@@ -3,6 +3,9 @@ extends CharacterBody2D
 
 signal died
 
+const HEALTH_BAR_WIDTH: float = 36.0
+const HEALTH_BAR_HEIGHT: float = 5.0
+
 @export var move_speed: float = 180.0
 @export var max_hp: float = 100.0
 
@@ -10,11 +13,14 @@ var current_hp: float = 0.0
 
 var _is_dead: bool = false
 
+@onready var _health_fill: Polygon2D = $HealthBar/Fill
+
 
 func _ready() -> void:
 	_ensure_input_actions()
 	max_hp = maxf(max_hp, 1.0)
 	current_hp = max_hp
+	_update_health_bar()
 
 
 func _physics_process(_delta: float) -> void:
@@ -32,8 +38,26 @@ func take_damage(amount: float) -> void:
 		return
 
 	current_hp = maxf(current_hp - amount, 0.0)
+	_update_health_bar()
 	if current_hp <= 0.0:
 		_die()
+
+
+func _update_health_bar() -> void:
+	if _health_fill == null:
+		return
+
+	var health_ratio := clampf(current_hp / max_hp, 0.0, 1.0)
+	var left := -HEALTH_BAR_WIDTH * 0.5
+	var right := left + HEALTH_BAR_WIDTH * health_ratio
+	var top := -HEALTH_BAR_HEIGHT * 0.5
+	var bottom := HEALTH_BAR_HEIGHT * 0.5
+	_health_fill.polygon = PackedVector2Array([
+		Vector2(left, top),
+		Vector2(right, top),
+		Vector2(right, bottom),
+		Vector2(left, bottom),
+	])
 
 
 func _die() -> void:
