@@ -1,0 +1,129 @@
+version: 1
+name: mythsurvivor_multi_agent_pr_workflow
+mode: scaffold_only
+
+principles:
+  - The orchestrator coordinates work, but agents own scoped changes.
+  - Every implementation task must pass QA and review before PR creation.
+  - Git branch, commit, and PR creation can be automated after explicit integration.
+  - Merging main remains human-controlled.
+  - Permission checks run before any file write.
+
+inputs:
+  task_file: .agent/tasks.example.json
+  agent_registry: .agent/agents.yaml
+  permission_policy: .agent/permissions.yaml
+
+branching:
+  branch_prefix: codex/
+  branch_pattern: codex/{task_id}-{slug}
+  protected_branches:
+    - main
+  require_clean_worktree_before_branch: true
+
+flow:
+  - id: intake
+    owner: orchestrator
+    description: Load task request, repo rules, agent registry, and permission policy.
+    outputs:
+      - normalized_task
+      - initial_risk_notes
+
+  - id: pm_breakdown
+    owner: pm_agent
+    description: Split the task into scoped subtasks with acceptance criteria and agent assignments.
+    inputs:
+      - normalized_task
+    outputs:
+      - task_breakdown
+      - dependency_order
+      - validation_plan
+
+  - id: preflight
+    owner: orchestrator
+    description: Check branch safety, protected paths, and task permissions before implementation.
+    inputs:
+      - task_breakdown
+      - .agent/permissions.yaml
+    outputs:
+      - preflight_report
+      - allowed_write_set
+
+  - id: create_branch
+    owner: git_ops
+    description: Create a task branch from the current base branch.
+    inputs:
+      - branch_pattern
+      - normalized_task
+    outputs:
+      - branch_name
+
+  - id: implementation
+    owner: assigned_agents
+    description: Run Skill, Menu, Feedback, and Balance agents as assigned by PM.
+    parallelizable: true
+    inputs:
+      - task_breakdown
+      - allowed_write_set
+    outputs:
+      - patches
+      - implementation_notes
+
+  - id: qa
+    owner: qa_agent
+    description: Run automated smoke checks and produce manual regression notes.
+    inputs:
+      - patches
+      - validation_plan
+    commands:
+      - python scripts/godot_test_runner.py --dry-run
+    outputs:
+      - qa_report
+
+  - id: review
+    owner: reviewer_agent
+    description: Review diffs, policy compliance, test coverage, and PR readiness.
+    inputs:
+      - patches
+      - qa_report
+    outputs:
+      - review_report
+      - pr_readiness
+
+  - id: revise_if_needed
+    owner: orchestrator
+    description: Route blocking QA or review findings back to the assigned agent.
+    condition: qa_failed_or_review_blocked
+    outputs:
+      - revised_patch
+      - updated_reports
+
+  - id: commit
+    owner: git_ops
+    description: Stage approved files and create a focused commit.
+    inputs:
+      - approved_patch
+      - review_report
+    outputs:
+      - commit_sha
+
+  - id: create_pr
+    owner: github_tasks
+    description: Create a draft PR with summary, QA status, and reviewer notes.
+    inputs:
+      - commit_sha
+      - qa_report
+      - review_report
+    outputs:
+      - pull_request_url
+
+  - id: human_merge_gate
+    owner: human
+    description: Human reviews the PR and decides whether to merge into main.
+    automated: false
+
+artifacts:
+  run_log_dir: .agent/runs/
+  qa_report_name: qa_report.md
+  review_report_name: review_report.md
+  pr_body_name: pr_body.md
