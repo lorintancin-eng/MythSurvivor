@@ -15,9 +15,9 @@ func _try_attack() -> bool:
 
 
 func _find_nearest_enemy() -> Node2D:
-	var range := _get_attack_range()
+	var attack_range := _get_attack_range()
 	var nearest_enemy: Node2D = null
-	var nearest_distance_squared := range * range
+	var nearest_distance_squared := attack_range * attack_range
 
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not enemy is Node2D:

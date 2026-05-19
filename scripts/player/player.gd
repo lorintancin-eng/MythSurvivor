@@ -2,25 +2,53 @@ class_name Player
 extends CharacterBody2D
 
 signal died
+signal health_changed(current_hp: float, max_hp: float)
+signal experience_changed(current_xp: float, xp_to_next_level: float, level: int)
+signal level_reached(level: int)
+signal upgrade_applied(upgrade_id: StringName)
 
 const HEALTH_BAR_WIDTH: float = 36.0
 const HEALTH_BAR_HEIGHT: float = 5.0
+const DEFAULT_LEVEL_UP_PANEL_SCENE: PackedScene = preload("res://scenes/ui/LevelUpPanel.tscn")
+const UPGRADE_TALISMAN_DAMAGE := &"talisman_damage"
+const UPGRADE_TALISMAN_COOLDOWN := &"talisman_cooldown"
+const UPGRADE_MOVE_SPEED := &"move_speed"
 
 @export var move_speed: float = 180.0
 @export var max_hp: float = 100.0
+@export var initial_xp_to_next_level: float = 20.0
+@export var xp_growth_multiplier: float = 1.25
+@export var xp_growth_flat: float = 5.0
+@export var upgrade_random_seed: int = 2401
+@export var level_up_panel_scene: PackedScene = DEFAULT_LEVEL_UP_PANEL_SCENE
 
 var current_hp: float = 0.0
+var current_xp: float = 0.0
+var xp_to_next_level: float = 0.0
+var level: int = 1
 
 var _is_dead: bool = false
+var _pending_upgrade_choices: int = 0
+var _is_selecting_upgrade: bool = false
+var _was_tree_paused_before_level_up: bool = false
+var _upgrade_rng := RandomNumberGenerator.new()
+var _level_up_panel: LevelUpPanel
 
 @onready var _health_fill: Polygon2D = $HealthBar/Fill
+@onready var _talisman_weapon: TalismanWeapon = $TalismanWeapon
 
 
 func _ready() -> void:
 	_ensure_input_actions()
 	max_hp = maxf(max_hp, 1.0)
 	current_hp = max_hp
+	level = maxi(level, 1)
+	current_xp = maxf(current_xp, 0.0)
+	xp_to_next_level = maxf(initial_xp_to_next_level, 1.0)
+	_upgrade_rng.seed = upgrade_random_seed
 	_update_health_bar()
+	health_changed.emit(current_hp, max_hp)
+	experience_changed.emit(current_xp, xp_to_next_level, level)
 
 
 func _physics_process(_delta: float) -> void:
@@ -39,8 +67,38 @@ func take_damage(amount: float) -> void:
 
 	current_hp = maxf(current_hp - amount, 0.0)
 	_update_health_bar()
+	health_changed.emit(current_hp, max_hp)
 	if current_hp <= 0.0:
 		_die()
+
+
+func gain_experience(amount: float) -> void:
+	if _is_dead or amount <= 0.0:
+		return
+
+	current_xp += amount
+	var levels_gained := 0
+	while current_xp >= xp_to_next_level:
+		current_xp -= xp_to_next_level
+		level += 1
+		xp_to_next_level = _get_next_xp_threshold(xp_to_next_level)
+		levels_gained += 1
+		level_reached.emit(level)
+
+	experience_changed.emit(current_xp, xp_to_next_level, level)
+
+	if levels_gained > 0:
+		_queue_upgrade_choices(levels_gained)
+
+
+func get_progression_state() -> Dictionary:
+	return {
+		"level": level,
+		"current_xp": current_xp,
+		"xp_to_next_level": xp_to_next_level,
+		"current_hp": current_hp,
+		"max_hp": max_hp,
+	}
 
 
 func _update_health_bar() -> void:
@@ -100,3 +158,128 @@ func _action_has_key(action_name: StringName, keycode: int) -> bool:
 				return true
 
 	return false
+
+
+func _get_next_xp_threshold(previous_threshold: float) -> float:
+	var next_threshold := previous_threshold * maxf(xp_growth_multiplier, 1.0) + maxf(xp_growth_flat, 0.0)
+	return ceilf(maxf(next_threshold, previous_threshold + 1.0))
+
+
+func _queue_upgrade_choices(levels_gained: int) -> void:
+	_pending_upgrade_choices += maxi(levels_gained, 0)
+	if _is_selecting_upgrade:
+		return
+
+	_was_tree_paused_before_level_up = get_tree().paused
+	_show_next_upgrade_choice()
+
+
+func _show_next_upgrade_choice() -> void:
+	if _pending_upgrade_choices <= 0:
+		get_tree().paused = _was_tree_paused_before_level_up
+		return
+
+	_pending_upgrade_choices -= 1
+	_is_selecting_upgrade = true
+	_ensure_level_up_panel()
+	if not is_instance_valid(_level_up_panel):
+		_is_selecting_upgrade = false
+		get_tree().paused = _was_tree_paused_before_level_up
+		return
+
+	_level_up_panel.show_choices(_get_random_upgrade_options())
+	get_tree().paused = true
+
+
+func _ensure_level_up_panel() -> void:
+	if is_instance_valid(_level_up_panel):
+		return
+	if level_up_panel_scene == null:
+		push_error("Player has no level_up_panel_scene.")
+		return
+
+	var panel_instance := level_up_panel_scene.instantiate()
+	if not panel_instance is LevelUpPanel:
+		push_error("level_up_panel_scene must instantiate a LevelUpPanel.")
+		panel_instance.queue_free()
+		return
+
+	_level_up_panel = panel_instance as LevelUpPanel
+	_get_level_up_panel_parent().add_child(_level_up_panel)
+	_level_up_panel.upgrade_selected.connect(_on_upgrade_selected)
+
+
+func _get_level_up_panel_parent() -> Node:
+	var current_scene := get_tree().current_scene
+	if current_scene != null:
+		return current_scene
+
+	var parent := get_parent()
+	if parent != null:
+		return parent
+
+	return self
+
+
+func _get_random_upgrade_options() -> Array[Dictionary]:
+	var options := _get_upgrade_pool()
+	for i in range(options.size() - 1, 0, -1):
+		var swap_index := _upgrade_rng.randi_range(0, i)
+		var option := options[i]
+		options[i] = options[swap_index]
+		options[swap_index] = option
+
+	var selected_options: Array[Dictionary] = []
+	for i in range(mini(3, options.size())):
+		selected_options.append(options[i])
+
+	return selected_options
+
+
+func _get_upgrade_pool() -> Array[Dictionary]:
+	return [
+		{
+			"id": UPGRADE_TALISMAN_DAMAGE,
+			"title": "Talisman Damage +10",
+			"description": "Increase talisman projectile damage by 10."
+		},
+		{
+			"id": UPGRADE_TALISMAN_COOLDOWN,
+			"title": "Talisman Cooldown -10%",
+			"description": "Fire talisman projectiles 10% faster."
+		},
+		{
+			"id": UPGRADE_MOVE_SPEED,
+			"title": "Move Speed +10%",
+			"description": "Increase player movement speed by 10%."
+		}
+	]
+
+
+func _on_upgrade_selected(upgrade_id: StringName) -> void:
+	_apply_upgrade(upgrade_id)
+	if is_instance_valid(_level_up_panel):
+		_level_up_panel.hide_panel()
+
+	_is_selecting_upgrade = false
+	if _pending_upgrade_choices > 0:
+		_show_next_upgrade_choice()
+	else:
+		get_tree().paused = _was_tree_paused_before_level_up
+
+
+func _apply_upgrade(upgrade_id: StringName) -> void:
+	match upgrade_id:
+		UPGRADE_TALISMAN_DAMAGE:
+			if _talisman_weapon != null:
+				_talisman_weapon.damage += 10.0
+		UPGRADE_TALISMAN_COOLDOWN:
+			if _talisman_weapon != null:
+				_talisman_weapon.cooldown = maxf(_talisman_weapon.cooldown * 0.9, WeaponBase.MIN_COOLDOWN)
+		UPGRADE_MOVE_SPEED:
+			move_speed *= 1.1
+		_:
+			push_warning("Unknown upgrade selected: %s" % String(upgrade_id))
+			return
+
+	upgrade_applied.emit(upgrade_id)

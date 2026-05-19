@@ -6,11 +6,14 @@ signal died(enemy: Enemy)
 const MIN_DAMAGE_INTERVAL: float = 0.1
 const HEALTH_BAR_WIDTH: float = 28.0
 const HEALTH_BAR_HEIGHT: float = 4.0
+const DEFAULT_EXPERIENCE_ORB_SCENE: PackedScene = preload("res://scenes/system/ExperienceOrb.tscn")
 
 @export var move_speed: float = 90.0
 @export var max_hp: float = 24.0
 @export var damage: float = 8.0
 @export var damage_interval: float = 0.8
+@export var xp_drop_value: float = 5.0
+@export var experience_orb_scene: PackedScene = DEFAULT_EXPERIENCE_ORB_SCENE
 
 var current_hp: float = 0.0
 
@@ -120,5 +123,38 @@ func _die() -> void:
 
 	_is_dead = true
 	velocity = Vector2.ZERO
+	_drop_experience()
 	died.emit(self)
 	queue_free()
+
+
+func _drop_experience() -> void:
+	if xp_drop_value <= 0.0 or experience_orb_scene == null:
+		return
+
+	var orb_instance := experience_orb_scene.instantiate()
+	if not orb_instance is ExperienceOrb:
+		push_error("Enemy experience_orb_scene must instantiate an ExperienceOrb.")
+		orb_instance.queue_free()
+		return
+
+	var orb := orb_instance as ExperienceOrb
+	var drop_parent := _get_drop_parent()
+	if drop_parent is Node2D:
+		orb.position = (drop_parent as Node2D).to_local(global_position)
+	else:
+		orb.global_position = global_position
+	orb.xp_value = xp_drop_value
+	drop_parent.call_deferred("add_child", orb)
+
+
+func _get_drop_parent() -> Node:
+	var current_scene := get_tree().current_scene
+	if current_scene != null:
+		return current_scene
+
+	var parent := get_parent()
+	if parent != null:
+		return parent
+
+	return self
