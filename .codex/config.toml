@@ -1,0 +1,24 @@
+[project]
+name = "MythSurvivor"
+engine = "Godot 4.x"
+language = "GDScript"
+stage = "v0.2 feature expansion and polish"
+
+[workflow]
+mode = "orchestrated_subagents"
+orchestrator = ".codex/ORCHESTRATOR.md"
+agents_dir = ".codex/agents"
+default_branch_prefix = "codex/"
+require_clean_worktree_for_new_feature_branch = true
+auto_commit = false
+auto_push = false
+auto_merge = false
+force_push_allowed = false
+
+
+[guards]
+stable_branch = "main"
+copyright_policy = "original_or_license_compatible_only"
+godot_project_file_changes_require_user_approval = true
+external_assets_require_license_notes = true
+
