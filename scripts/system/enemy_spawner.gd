@@ -1,6 +1,8 @@
 class_name EnemySpawner
 extends Node2D
 
+signal enemy_defeated(defeated_count: int)
+
 const DEFAULT_ENEMY_SCENE: PackedScene = preload("res://scenes/enemy/Enemy.tscn")
 
 @export var enemy_scene: PackedScene = DEFAULT_ENEMY_SCENE
@@ -10,6 +12,7 @@ const DEFAULT_ENEMY_SCENE: PackedScene = preload("res://scenes/enemy/Enemy.tscn"
 @export var random_seed: int = 1301
 
 var current_enemy_count: int = 0
+var defeated_enemy_count: int = 0
 
 var _rng := RandomNumberGenerator.new()
 var _spawn_timer: float = 0.0
@@ -84,3 +87,5 @@ func _get_spawn_position(player_position: Vector2) -> Vector2:
 
 func _on_enemy_died(_enemy: Enemy) -> void:
 	current_enemy_count = maxi(current_enemy_count - 1, 0)
+	defeated_enemy_count += 1
+	enemy_defeated.emit(defeated_enemy_count)
