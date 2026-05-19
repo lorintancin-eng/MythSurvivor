@@ -12,15 +12,22 @@ const HEALTH_BAR_HEIGHT: float = 5.0
 const DEFAULT_LEVEL_UP_PANEL_SCENE: PackedScene = preload("res://scenes/ui/LevelUpPanel.tscn")
 const UPGRADE_TALISMAN_DAMAGE := &"talisman_damage"
 const UPGRADE_TALISMAN_COOLDOWN := &"talisman_cooldown"
+const UPGRADE_TALISMAN_COUNT := &"talisman_count"
+const UPGRADE_TALISMAN_SPEED := &"talisman_speed"
 const UPGRADE_UNLOCK_FLYING_SWORD := &"unlock_flying_sword"
 const UPGRADE_FLYING_SWORD_DAMAGE := &"flying_sword_damage"
 const UPGRADE_FLYING_SWORD_COOLDOWN := &"flying_sword_cooldown"
 const UPGRADE_FLYING_SWORD_PIERCE := &"flying_sword_pierce"
+const UPGRADE_FLYING_SWORD_COUNT := &"flying_sword_count"
 const UPGRADE_UNLOCK_THUNDER_LAW := &"unlock_thunder_law"
 const UPGRADE_THUNDER_LAW_DAMAGE := &"thunder_law_damage"
 const UPGRADE_THUNDER_LAW_COOLDOWN := &"thunder_law_cooldown"
 const UPGRADE_THUNDER_LAW_RADIUS := &"thunder_law_radius"
+const UPGRADE_THUNDER_LAW_TARGET_COUNT := &"thunder_law_target_count"
+const UPGRADE_MAX_HP := &"max_hp"
 const UPGRADE_MOVE_SPEED := &"move_speed"
+const UPGRADE_PICKUP_RADIUS := &"pickup_radius"
+const UPGRADE_XP_GAIN := &"xp_gain"
 
 @export var move_speed: float = 180.0
 @export var max_hp: float = 100.0
@@ -29,6 +36,8 @@ const UPGRADE_MOVE_SPEED := &"move_speed"
 @export var xp_growth_flat: float = 5.0
 @export var upgrade_random_seed: int = 2401
 @export var level_up_panel_scene: PackedScene = DEFAULT_LEVEL_UP_PANEL_SCENE
+@export var xp_gain_multiplier: float = 1.0
+@export var pickup_radius_bonus: float = 0.0
 
 var current_hp: float = 0.0
 var current_xp: float = 0.0
@@ -90,7 +99,7 @@ func gain_experience(amount: float) -> void:
 	if _is_dead or amount <= 0.0:
 		return
 
-	current_xp += amount
+	current_xp += amount * maxf(xp_gain_multiplier, 0.0)
 	var levels_gained := 0
 	while current_xp >= xp_to_next_level:
 		current_xp -= xp_to_next_level
@@ -112,7 +121,13 @@ func get_progression_state() -> Dictionary:
 		"xp_to_next_level": xp_to_next_level,
 		"current_hp": current_hp,
 		"max_hp": max_hp,
+		"pickup_radius_bonus": pickup_radius_bonus,
+		"xp_gain_multiplier": xp_gain_multiplier,
 	}
+
+
+func get_pickup_radius_bonus() -> float:
+	return maxf(pickup_radius_bonus, 0.0)
 
 
 func _update_health_bar() -> void:
@@ -263,9 +278,34 @@ func _get_upgrade_pool() -> Array[Dictionary]:
 			"description": "Fire talisman projectiles 10% faster."
 		},
 		{
+			"id": UPGRADE_TALISMAN_COUNT,
+			"title": "Talisman Count +1",
+			"description": "Fire 1 more talisman projectile per attack."
+		},
+		{
+			"id": UPGRADE_TALISMAN_SPEED,
+			"title": "Talisman Speed +15%",
+			"description": "Increase talisman projectile speed by 15%."
+		},
+		{
+			"id": UPGRADE_MAX_HP,
+			"title": "Max Health +20",
+			"description": "Increase maximum health by 20 and heal that amount."
+		},
+		{
 			"id": UPGRADE_MOVE_SPEED,
 			"title": "Move Speed +10%",
 			"description": "Increase player movement speed by 10%."
+		},
+		{
+			"id": UPGRADE_PICKUP_RADIUS,
+			"title": "Pickup Range +18",
+			"description": "Absorb cultivation orbs from farther away."
+		},
+		{
+			"id": UPGRADE_XP_GAIN,
+			"title": "Cultivation Gain +10%",
+			"description": "Gain 10% more cultivation from experience orbs."
 		}
 	]
 
@@ -284,6 +324,11 @@ func _get_upgrade_pool() -> Array[Dictionary]:
 			"id": UPGRADE_FLYING_SWORD_PIERCE,
 			"title": "Flying Sword Pierce +1",
 			"description": "Flying sword projectiles can pierce 1 more enemy."
+		})
+		pool.append({
+			"id": UPGRADE_FLYING_SWORD_COUNT,
+			"title": "Flying Sword Count +1",
+			"description": "Launch 1 more flying sword projectile per attack."
 		})
 	else:
 		pool.append({
@@ -307,6 +352,11 @@ func _get_upgrade_pool() -> Array[Dictionary]:
 			"id": UPGRADE_THUNDER_LAW_RADIUS,
 			"title": "Thunder Charm Range +16",
 			"description": "Increase thunder charm strike radius by 16."
+		})
+		pool.append({
+			"id": UPGRADE_THUNDER_LAW_TARGET_COUNT,
+			"title": "Thunder Charm Targets +1",
+			"description": "Strike 1 more target per thunder charm cast."
 		})
 	else:
 		pool.append({
@@ -338,6 +388,12 @@ func _apply_upgrade(upgrade_id: StringName) -> void:
 		UPGRADE_TALISMAN_COOLDOWN:
 			if _talisman_weapon != null:
 				_talisman_weapon.cooldown = maxf(_talisman_weapon.cooldown * 0.9, WeaponBase.MIN_COOLDOWN)
+		UPGRADE_TALISMAN_COUNT:
+			if _talisman_weapon != null:
+				_talisman_weapon.projectile_count += 1
+		UPGRADE_TALISMAN_SPEED:
+			if _talisman_weapon != null:
+				_talisman_weapon.projectile_speed *= 1.15
 		UPGRADE_UNLOCK_FLYING_SWORD:
 			_is_flying_sword_unlocked = true
 			_set_weapon_unlocked(_flying_sword_weapon, true)
@@ -350,6 +406,9 @@ func _apply_upgrade(upgrade_id: StringName) -> void:
 		UPGRADE_FLYING_SWORD_PIERCE:
 			if _flying_sword_weapon != null:
 				_flying_sword_weapon.pierce_count += 1
+		UPGRADE_FLYING_SWORD_COUNT:
+			if _flying_sword_weapon != null:
+				_flying_sword_weapon.projectile_count += 1
 		UPGRADE_UNLOCK_THUNDER_LAW:
 			_is_thunder_law_unlocked = true
 			_set_weapon_unlocked(_thunder_law_weapon, true)
@@ -362,8 +421,20 @@ func _apply_upgrade(upgrade_id: StringName) -> void:
 		UPGRADE_THUNDER_LAW_RADIUS:
 			if _thunder_law_weapon != null:
 				_thunder_law_weapon.radius += 16.0
+		UPGRADE_THUNDER_LAW_TARGET_COUNT:
+			if _thunder_law_weapon != null:
+				_thunder_law_weapon.target_count += 1
+		UPGRADE_MAX_HP:
+			max_hp += 20.0
+			current_hp = minf(current_hp + 20.0, max_hp)
+			_update_health_bar()
+			health_changed.emit(current_hp, max_hp)
 		UPGRADE_MOVE_SPEED:
 			move_speed *= 1.1
+		UPGRADE_PICKUP_RADIUS:
+			pickup_radius_bonus += 18.0
+		UPGRADE_XP_GAIN:
+			xp_gain_multiplier *= 1.1
 		_:
 			push_warning("Unknown upgrade selected: %s" % String(upgrade_id))
 			return

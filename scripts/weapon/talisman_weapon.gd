@@ -4,6 +4,8 @@ extends WeaponBase
 const DEFAULT_PROJECTILE_SCENE: PackedScene = preload("res://scenes/weapon/TalismanProjectile.tscn")
 
 @export var projectile_scene: PackedScene = DEFAULT_PROJECTILE_SCENE
+@export var projectile_count: int = 1
+@export var projectile_spread_degrees: float = 12.0
 
 
 func _try_attack() -> bool:
@@ -11,7 +13,7 @@ func _try_attack() -> bool:
 	if target == null:
 		return false
 
-	return _fire_projectile(target)
+	return _fire_projectiles(target)
 
 
 func _find_nearest_enemy() -> Node2D:
@@ -39,7 +41,22 @@ func _find_nearest_enemy() -> Node2D:
 	return nearest_enemy
 
 
-func _fire_projectile(target: Node2D) -> bool:
+func _fire_projectiles(target: Node2D) -> bool:
+	var projectile_total := _get_projectile_count()
+	var base_direction := global_position.direction_to(target.global_position)
+	var spread_step := deg_to_rad(maxf(projectile_spread_degrees, 0.0))
+	var start_offset := -spread_step * float(projectile_total - 1) * 0.5
+	var did_fire := false
+
+	for index in range(projectile_total):
+		var direction := base_direction.rotated(start_offset + spread_step * float(index))
+		if _fire_projectile(direction):
+			did_fire = true
+
+	return did_fire
+
+
+func _fire_projectile(direction: Vector2) -> bool:
 	if projectile_scene == null:
 		push_warning("TalismanWeapon has no projectile scene.")
 		return false
@@ -55,7 +72,6 @@ func _fire_projectile(target: Node2D) -> bool:
 	projectile_parent.add_child(projectile)
 	projectile.global_position = global_position
 
-	var direction := global_position.direction_to(target.global_position)
 	projectile.launch(
 		direction,
 		_get_damage(),
@@ -64,6 +80,10 @@ func _fire_projectile(target: Node2D) -> bool:
 		_get_projectile_lifetime()
 	)
 	return true
+
+
+func _get_projectile_count() -> int:
+	return maxi(projectile_count, 1)
 
 
 func _get_projectile_parent() -> Node:
