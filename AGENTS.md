@@ -84,15 +84,32 @@ res://
 
 目录结构应随 v0.2 功能实现逐步落地。创建新目录、脚本、场景或资源时，必须符合当前任务范围和模块职责。
 
-## Subagents 工作流
+## 默认 Subagents 工作流
 
-后续开发默认使用主控 Agent / Orchestrator 统筹，并按任务需要调用固定 Subagents：
+后续开发默认使用主控 Agent / Orchestrator + 固定 Subagents 工作流。
+
+用户只需要向主控 Agent 描述需求，例如“新增雷法技能”“做暂停菜单”“加受击反馈”或“优化刷怪节奏”。主控 Agent 必须自动判断任务类型，并在涉及功能实现时默认调用完整固定流程：
 
 - `pm_planner`。
 - `code_explorer`。
 - `feature_worker`。
 - `reviewer`。
 - `qa_tester`。
+
+默认职责顺序：
+
+1. `pm_planner` 规划任务范围、分支名、允许修改文件、禁止修改文件和验收标准。
+2. `code_explorer` 只读分析现有代码、场景、资源和接入点。
+3. `feature_worker` 在授权范围内实现功能。
+4. `reviewer` 在提交前只读审查 diff，检查越界修改、明显 bug 和系统回归风险。
+5. `qa_tester` 在提交前输出 Godot 手动测试清单和回归测试项。
+6. 主控 Agent 汇总 Subagents 结果、验证状态、风险点和下一步建议。
+
+只有 `feature_worker` 默认允许写代码、场景、资源或配置。`pm_planner`、`code_explorer`、`reviewer` 和 `qa_tester` 默认只读，不得修改文件。
+
+`reviewer` 和 `qa_tester` 必须在提交前参与功能开发流程。除非用户明确要求跳过，否则主控 Agent 不应在缺少 review 或 QA 测试清单的情况下提交功能改动。
+
+主控 Agent 不允许自动 commit、push、merge，除非用户明确要求。即使功能已经实现并通过 review，提交和推送也必须等待用户明确授权。
 
 ### 主控 Agent / Orchestrator
 
