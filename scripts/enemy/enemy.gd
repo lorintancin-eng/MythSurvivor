@@ -9,6 +9,8 @@ const HEALTH_BAR_HEIGHT: float = 4.0
 const DEFAULT_EXPERIENCE_ORB_SCENE: PackedScene = preload("res://scenes/system/ExperienceOrb.tscn")
 const MOVEMENT_CHASE: int = 0
 const MOVEMENT_WAVE_CHASE: int = 1
+const ELITE_AFFIX_IRON_BONES: String = "iron_bones"
+const ELITE_AFFIX_SWIFT: String = "swift"
 
 @export var archetype: Resource
 @export var move_speed: float = 90.0
@@ -21,6 +23,13 @@ const MOVEMENT_WAVE_CHASE: int = 1
 @export var wave_amplitude: float = 0.0
 @export var wave_frequency: float = 0.0
 @export var wave_phase: float = 0.0
+@export var is_elite: bool = false
+@export var elite_affixes: Array[String] = []
+@export var elite_health_multiplier: float = 1.25
+@export var elite_damage_multiplier: float = 1.15
+@export var elite_speed_multiplier: float = 1.05
+@export var iron_bones_health_multiplier: float = 1.45
+@export var swift_speed_multiplier: float = 1.3
 
 var current_hp: float = 0.0
 
@@ -42,6 +51,8 @@ func _ready() -> void:
 	add_to_group("enemies")
 	if archetype != null:
 		_apply_archetype_values(archetype)
+	if is_elite:
+		_apply_elite_modifiers()
 	max_hp = maxf(max_hp, 1.0)
 	current_hp = max_hp
 	_damage_area.body_entered.connect(_on_damage_body_entered)
@@ -79,6 +90,23 @@ func apply_archetype(enemy_archetype: Resource) -> void:
 		return
 
 	_apply_archetype_values(archetype)
+	if is_elite:
+		_apply_elite_modifiers()
+	max_hp = maxf(max_hp, 1.0)
+	current_hp = max_hp
+	if is_node_ready():
+		_apply_archetype_visuals(archetype)
+		_update_health_bar()
+
+
+func configure_elite(affixes: Array[String]) -> void:
+	var configured_affixes := affixes.duplicate()
+	if archetype != null:
+		_apply_archetype_values(archetype)
+
+	is_elite = true
+	elite_affixes = configured_affixes
+	_apply_elite_modifiers()
 	max_hp = maxf(max_hp, 1.0)
 	current_hp = max_hp
 	if is_node_ready():
@@ -119,6 +147,26 @@ func _apply_archetype_values(enemy_archetype: Resource) -> void:
 	wave_amplitude = enemy_archetype.wave_amplitude
 	wave_frequency = enemy_archetype.wave_frequency
 	wave_phase = enemy_archetype.wave_phase
+	is_elite = enemy_archetype.is_elite
+	elite_affixes = enemy_archetype.elite_affixes.duplicate()
+	elite_health_multiplier = enemy_archetype.elite_health_multiplier
+	elite_damage_multiplier = enemy_archetype.elite_damage_multiplier
+	elite_speed_multiplier = enemy_archetype.elite_speed_multiplier
+	iron_bones_health_multiplier = enemy_archetype.iron_bones_health_multiplier
+	swift_speed_multiplier = enemy_archetype.swift_speed_multiplier
+
+
+func _apply_elite_modifiers() -> void:
+	max_hp *= maxf(elite_health_multiplier, 0.1)
+	damage *= maxf(elite_damage_multiplier, 0.0)
+	move_speed *= maxf(elite_speed_multiplier, 0.1)
+
+	for affix in elite_affixes:
+		match affix:
+			ELITE_AFFIX_IRON_BONES:
+				max_hp *= maxf(iron_bones_health_multiplier, 0.1)
+			ELITE_AFFIX_SWIFT:
+				move_speed *= maxf(swift_speed_multiplier, 0.1)
 
 
 func _apply_archetype_visuals(enemy_archetype: Resource) -> void:

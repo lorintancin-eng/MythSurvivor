@@ -2,6 +2,7 @@ class_name EnemySpawner
 extends Node2D
 
 signal enemy_defeated(defeated_count: int)
+signal elite_spawned(elite: Enemy, affixes: Array[String])
 
 const DEFAULT_ENEMY_SCENE: PackedScene = preload("res://scenes/enemy/Enemy.tscn")
 const WANDERING_SOUL_ARCHETYPE: Resource = preload("res://resources/enemies/wandering_soul.tres")
@@ -53,18 +54,21 @@ func _try_spawn_enemy() -> void:
 		push_warning("EnemySpawner could not find a node in the player group.")
 		return
 
-	var enemy_instance := enemy_scene.instantiate()
-	if not enemy_instance is Enemy:
-		push_error("EnemySpawner enemy_scene must instantiate an Enemy.")
-		enemy_instance.queue_free()
+	var enemy := _create_enemy(_select_archetype())
+	if enemy == null:
 		return
 
-	var enemy := enemy_instance as Enemy
-	enemy.apply_archetype(_select_archetype())
-	add_child(enemy)
 	enemy.global_position = _get_spawn_position(player.global_position)
-	enemy.died.connect(_on_enemy_died)
-	current_enemy_count += 1
+
+
+func spawn_elite_at(enemy_archetype: Resource, spawn_position: Vector2, affixes: Array[String]) -> Enemy:
+	var enemy := _create_enemy(enemy_archetype, affixes)
+	if enemy == null:
+		return null
+
+	enemy.global_position = spawn_position
+	elite_spawned.emit(enemy, affixes)
+	return enemy
 
 
 func set_spawning_enabled(is_enabled: bool) -> void:
@@ -81,6 +85,27 @@ func get_effective_archetype_count() -> int:
 			archetype_count += 1
 
 	return archetype_count
+
+
+func _create_enemy(enemy_archetype: Resource, affixes: Array[String] = []) -> Enemy:
+	if enemy_scene == null:
+		push_warning("EnemySpawner has no enemy_scene.")
+		return null
+
+	var enemy_instance := enemy_scene.instantiate()
+	if not enemy_instance is Enemy:
+		push_error("EnemySpawner enemy_scene must instantiate an Enemy.")
+		enemy_instance.queue_free()
+		return null
+
+	var enemy := enemy_instance as Enemy
+	enemy.archetype = enemy_archetype
+	add_child(enemy)
+	if not affixes.is_empty():
+		enemy.configure_elite(affixes)
+	enemy.died.connect(_on_enemy_died)
+	current_enemy_count += 1
+	return enemy
 
 
 func _ensure_default_archetype_pool() -> void:

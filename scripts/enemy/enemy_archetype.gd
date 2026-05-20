@@ -21,3 +21,10 @@ enum MovementMode {
 @export var wave_amplitude: float = 0.0
 @export var wave_frequency: float = 0.0
 @export var wave_phase: float = 0.0
+@export var is_elite: bool = false
+@export var elite_affixes: Array[String] = []
+@export var elite_health_multiplier: float = 1.25
+@export var elite_damage_multiplier: float = 1.15
+@export var elite_speed_multiplier: float = 1.05
+@export var iron_bones_health_multiplier: float = 1.45
+@export var swift_speed_multiplier: float = 1.3

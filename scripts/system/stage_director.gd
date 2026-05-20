@@ -4,6 +4,7 @@ extends Node2D
 signal stage_time_changed(elapsed_time: float, stage_duration: float)
 signal boss_warning_started(warning_lead_time: float)
 signal boss_spawned(boss: Enemy)
+signal elite_spawned(elite: Enemy, affixes: Array[String])
 signal demon_seal_spawned(demon_seal: Area2D)
 signal demon_seal_progress_changed(progress_seconds: float, required_seconds: float, is_sealing: bool)
 signal demon_seal_completed(demon_seal: Area2D)
@@ -13,8 +14,11 @@ signal stage_failed(elapsed_time: float)
 const DEFAULT_BOSS_SCENE: PackedScene = preload("res://scenes/enemy/Enemy.tscn")
 const DEFAULT_DEMON_SEAL_SCENE: PackedScene = preload("res://scenes/system/DemonSeal.tscn")
 const DEFAULT_EXPERIENCE_ORB_SCENE: PackedScene = preload("res://scenes/system/ExperienceOrb.tscn")
+const SHANXIAO_ELITE_ARCHETYPE: Resource = preload("res://resources/enemies/shanxiao_elite.tres")
 const MIN_STAGE_DURATION: float = 1.0
 const MIN_SPAWN_DISTANCE: float = 80.0
+const ELITE_AFFIX_IRON_BONES: String = "iron_bones"
+const ELITE_AFFIX_SWIFT: String = "swift"
 
 @export var player_path: NodePath = ^"../Player"
 @export var enemy_spawner_path: NodePath = ^"../EnemySpawner"
@@ -39,6 +43,9 @@ const MIN_SPAWN_DISTANCE: float = 80.0
 @export var demon_seal_reward_orb_count: int = 8
 @export var demon_seal_reward_xp_value: float = 6.0
 @export var demon_seal_reward_radius: float = 54.0
+@export var first_elite_spawn_time: float = 180.0
+@export var second_elite_spawn_time: float = 240.0
+@export var elite_spawn_distance: float = 420.0
 
 var elapsed_time: float = 0.0
 
@@ -46,6 +53,8 @@ var _is_boss_warning_started: bool = false
 var _is_boss_spawned: bool = false
 var _is_demon_seal_spawned: bool = false
 var _is_demon_seal_completed: bool = false
+var _is_first_elite_spawned: bool = false
+var _is_second_elite_spawned: bool = false
 var _is_stage_cleared: bool = false
 var _is_stage_failed: bool = false
 var _is_demon_seal_pressure_active: bool = false
@@ -73,6 +82,9 @@ func _ready() -> void:
 	demon_seal_reward_orb_count = maxi(demon_seal_reward_orb_count, 0)
 	demon_seal_reward_xp_value = maxf(demon_seal_reward_xp_value, 0.0)
 	demon_seal_reward_radius = maxf(demon_seal_reward_radius, 0.0)
+	first_elite_spawn_time = clampf(first_elite_spawn_time, 0.0, stage_duration)
+	second_elite_spawn_time = clampf(second_elite_spawn_time, 0.0, stage_duration)
+	elite_spawn_distance = maxf(elite_spawn_distance, MIN_SPAWN_DISTANCE)
 	_rng.randomize()
 
 	_player = get_node_or_null(player_path) as Player
@@ -96,6 +108,12 @@ func _process(delta: float) -> void:
 
 	if not _is_demon_seal_spawned and elapsed_time >= demon_seal_spawn_time:
 		_spawn_demon_seal()
+
+	if not _is_first_elite_spawned and elapsed_time >= first_elite_spawn_time:
+		_spawn_first_elite()
+
+	if not _is_second_elite_spawned and elapsed_time >= second_elite_spawn_time:
+		_spawn_second_elite()
 
 	if not _is_boss_spawned and elapsed_time >= stage_duration:
 		_spawn_boss()
@@ -157,6 +175,30 @@ func _spawn_boss() -> void:
 	boss_spawned.emit(boss)
 
 
+func _spawn_first_elite() -> void:
+	_is_first_elite_spawned = true
+	_spawn_shanxiao_elite([ELITE_AFFIX_IRON_BONES])
+
+
+func _spawn_second_elite() -> void:
+	_is_second_elite_spawned = true
+	_spawn_shanxiao_elite([ELITE_AFFIX_SWIFT])
+
+
+func _spawn_shanxiao_elite(affixes: Array[String]) -> void:
+	if _enemy_spawner == null:
+		push_warning("StageDirector could not find EnemySpawner for elite spawn.")
+		return
+
+	var elite := _enemy_spawner.spawn_elite_at(
+		SHANXIAO_ELITE_ARCHETYPE,
+		_get_elite_spawn_position(),
+		affixes
+	)
+	if elite != null:
+		elite_spawned.emit(elite, affixes)
+
+
 func _apply_boss_phase_spawn_pressure() -> void:
 	if _enemy_spawner == null:
 		return
@@ -216,6 +258,15 @@ func _get_demon_seal_spawn_position() -> Vector2:
 	var angle := _rng.randf_range(0.0, TAU)
 	var distance := _rng.randf_range(demon_seal_min_spawn_distance, demon_seal_max_spawn_distance)
 	return player_position + Vector2.RIGHT.rotated(angle) * distance
+
+
+func _get_elite_spawn_position() -> Vector2:
+	var player_position := global_position
+	if is_instance_valid(_player):
+		player_position = _player.global_position
+
+	var angle := _rng.randf_range(0.0, TAU)
+	return player_position + Vector2.RIGHT.rotated(angle) * elite_spawn_distance
 
 
 func _spawn_demon_seal_reward(center_position: Vector2) -> void:
