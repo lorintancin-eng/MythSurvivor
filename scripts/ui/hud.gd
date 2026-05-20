@@ -16,7 +16,7 @@ var _is_run_finished: bool = false
 var _player: Player
 var _enemy_spawner: EnemySpawner
 var _game_over_panel: GameOverPanel
-var _stage_director: StageDirector
+var _stage_director: Node
 
 @onready var _health_label: Label = $Panel/Margin/Content/HealthLabel
 @onready var _level_label: Label = $Panel/Margin/Content/LevelLabel
@@ -30,7 +30,7 @@ func _ready() -> void:
 	_player = get_node_or_null(player_path) as Player
 	_enemy_spawner = get_node_or_null(enemy_spawner_path) as EnemySpawner
 	_game_over_panel = get_node_or_null(game_over_panel_path) as GameOverPanel
-	_stage_director = get_node_or_null(stage_director_path) as StageDirector
+	_stage_director = get_node_or_null(stage_director_path)
 
 	_connect_player()
 	_connect_enemy_spawner()
@@ -76,14 +76,14 @@ func _connect_stage_director() -> void:
 	if _stage_director == null:
 		return
 
-	if not _stage_director.stage_time_changed.is_connected(_on_stage_time_changed):
-		_stage_director.stage_time_changed.connect(_on_stage_time_changed)
-	if not _stage_director.boss_warning_started.is_connected(_on_boss_warning_started):
-		_stage_director.boss_warning_started.connect(_on_boss_warning_started)
-	if not _stage_director.boss_spawned.is_connected(_on_boss_spawned):
-		_stage_director.boss_spawned.connect(_on_boss_spawned)
-	if not _stage_director.stage_cleared.is_connected(_on_stage_cleared):
-		_stage_director.stage_cleared.connect(_on_stage_cleared)
+	if not _stage_director.is_connected(&"stage_time_changed", _on_stage_time_changed):
+		_stage_director.connect(&"stage_time_changed", _on_stage_time_changed)
+	if not _stage_director.is_connected(&"boss_warning_started", _on_boss_warning_started):
+		_stage_director.connect(&"boss_warning_started", _on_boss_warning_started)
+	if not _stage_director.is_connected(&"boss_spawned", _on_boss_spawned):
+		_stage_director.connect(&"boss_spawned", _on_boss_spawned)
+	if not _stage_director.is_connected(&"stage_cleared", _on_stage_cleared):
+		_stage_director.connect(&"stage_cleared", _on_stage_cleared)
 
 
 func _refresh_initial_state() -> void:
