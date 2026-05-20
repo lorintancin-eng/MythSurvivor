@@ -24,6 +24,20 @@ const UPGRADE_THUNDER_LAW_DAMAGE := &"thunder_law_damage"
 const UPGRADE_THUNDER_LAW_COOLDOWN := &"thunder_law_cooldown"
 const UPGRADE_THUNDER_LAW_RADIUS := &"thunder_law_radius"
 const UPGRADE_THUNDER_LAW_TARGET_COUNT := &"thunder_law_target_count"
+const UPGRADE_UNLOCK_BAGUA_ARRAY := &"unlock_bagua_array"
+const UPGRADE_BAGUA_ARRAY_DAMAGE := &"bagua_array_damage"
+const UPGRADE_BAGUA_ARRAY_RADIUS := &"bagua_array_radius"
+const UPGRADE_BAGUA_ARRAY_ROTATION_SPEED := &"bagua_array_rotation_speed"
+const UPGRADE_BAGUA_ARRAY_TICK_RATE := &"bagua_array_tick_rate"
+const UPGRADE_UNLOCK_EXPLOSIVE_TALISMAN := &"unlock_explosive_talisman"
+const UPGRADE_EXPLOSIVE_TALISMAN_RADIUS := &"explosive_talisman_radius"
+const UPGRADE_EXPLOSIVE_TALISMAN_DAMAGE := &"explosive_talisman_damage"
+const UPGRADE_EXPLOSIVE_TALISMAN_COUNT := &"explosive_talisman_count"
+const UPGRADE_EXPLOSIVE_TALISMAN_COOLDOWN := &"explosive_talisman_cooldown"
+const UPGRADE_UNLOCK_MOUNTAIN_SEAL := &"unlock_mountain_seal"
+const UPGRADE_MOUNTAIN_SEAL_DAMAGE := &"mountain_seal_damage"
+const UPGRADE_MOUNTAIN_SEAL_RADIUS := &"mountain_seal_radius"
+const UPGRADE_MOUNTAIN_SEAL_COOLDOWN := &"mountain_seal_cooldown"
 const UPGRADE_MAX_HP := &"max_hp"
 const UPGRADE_MOVE_SPEED := &"move_speed"
 const UPGRADE_PICKUP_RADIUS := &"pickup_radius"
@@ -50,6 +64,9 @@ var _is_selecting_upgrade: bool = false
 var _was_tree_paused_before_level_up: bool = false
 var _is_flying_sword_unlocked: bool = false
 var _is_thunder_law_unlocked: bool = false
+var _is_bagua_array_unlocked: bool = false
+var _is_explosive_talisman_unlocked: bool = false
+var _is_mountain_seal_unlocked: bool = false
 var _upgrade_rng := RandomNumberGenerator.new()
 var _level_up_panel: LevelUpPanel
 
@@ -57,12 +74,18 @@ var _level_up_panel: LevelUpPanel
 @onready var _talisman_weapon: TalismanWeapon = $TalismanWeapon
 @onready var _flying_sword_weapon: FlyingSwordWeapon = $FlyingSwordWeapon
 @onready var _thunder_law_weapon: ThunderLawWeapon = $ThunderLawWeapon
+@onready var _bagua_array_weapon = $BaguaArrayWeapon
+@onready var _explosive_talisman_weapon = $ExplosiveTalismanWeapon
+@onready var _mountain_seal_weapon = $MountainSealWeapon
 
 
 func _ready() -> void:
 	_ensure_input_actions()
 	_set_weapon_unlocked(_flying_sword_weapon, _is_flying_sword_unlocked)
 	_set_weapon_unlocked(_thunder_law_weapon, _is_thunder_law_unlocked)
+	_set_weapon_unlocked(_bagua_array_weapon, _is_bagua_array_unlocked)
+	_set_weapon_unlocked(_explosive_talisman_weapon, _is_explosive_talisman_unlocked)
+	_set_weapon_unlocked(_mountain_seal_weapon, _is_mountain_seal_unlocked)
 	max_hp = maxf(max_hp, 1.0)
 	current_hp = max_hp
 	level = maxi(level, 1)
@@ -365,6 +388,85 @@ func _get_upgrade_pool() -> Array[Dictionary]:
 			"description": "Gain a thunder charm that strikes clustered enemies."
 		})
 
+	if _is_bagua_array_unlocked:
+		pool.append({
+			"id": UPGRADE_BAGUA_ARRAY_DAMAGE,
+			"title": "Bagua Array Damage +6",
+			"description": "Increase Bagua array pulse damage by 6."
+		})
+		pool.append({
+			"id": UPGRADE_BAGUA_ARRAY_RADIUS,
+			"title": "Bagua Array Radius +14",
+			"description": "Increase Bagua array damage radius by 14."
+		})
+		pool.append({
+			"id": UPGRADE_BAGUA_ARRAY_ROTATION_SPEED,
+			"title": "Bagua Array Spin +20%",
+			"description": "Increase Bagua array rotation speed by 20%."
+		})
+		pool.append({
+			"id": UPGRADE_BAGUA_ARRAY_TICK_RATE,
+			"title": "Bagua Array Pulse -10%",
+			"description": "Make Bagua array damage pulses 10% faster."
+		})
+	else:
+		pool.append({
+			"id": UPGRADE_UNLOCK_BAGUA_ARRAY,
+			"title": "Unlock Bagua Array",
+			"description": "Gain a rotating array that damages nearby enemies."
+		})
+
+	if _is_explosive_talisman_unlocked:
+		pool.append({
+			"id": UPGRADE_EXPLOSIVE_TALISMAN_RADIUS,
+			"title": "Explosive Talisman Radius +12",
+			"description": "Increase explosive talisman blast radius by 12."
+		})
+		pool.append({
+			"id": UPGRADE_EXPLOSIVE_TALISMAN_DAMAGE,
+			"title": "Explosive Talisman Damage +8",
+			"description": "Increase explosive talisman blast damage by 8."
+		})
+		pool.append({
+			"id": UPGRADE_EXPLOSIVE_TALISMAN_COUNT,
+			"title": "Explosive Talisman Count +1",
+			"description": "Launch 1 more explosive talisman per attack."
+		})
+		pool.append({
+			"id": UPGRADE_EXPLOSIVE_TALISMAN_COOLDOWN,
+			"title": "Explosive Talisman Cooldown -10%",
+			"description": "Launch explosive talismans 10% faster."
+		})
+	else:
+		pool.append({
+			"id": UPGRADE_UNLOCK_EXPLOSIVE_TALISMAN,
+			"title": "Unlock Explosive Talisman",
+			"description": "Gain a talisman that detonates on impact."
+		})
+
+	if _is_mountain_seal_unlocked:
+		pool.append({
+			"id": UPGRADE_MOUNTAIN_SEAL_DAMAGE,
+			"title": "Mountain Seal Damage +16",
+			"description": "Increase mountain seal impact damage by 16."
+		})
+		pool.append({
+			"id": UPGRADE_MOUNTAIN_SEAL_RADIUS,
+			"title": "Mountain Seal Radius +18",
+			"description": "Increase mountain seal impact radius by 18."
+		})
+		pool.append({
+			"id": UPGRADE_MOUNTAIN_SEAL_COOLDOWN,
+			"title": "Mountain Seal Cooldown -10%",
+			"description": "Call mountain seals 10% faster."
+		})
+	else:
+		pool.append({
+			"id": UPGRADE_UNLOCK_MOUNTAIN_SEAL,
+			"title": "Unlock Mountain Seal",
+			"description": "Gain a heavy seal that crushes enemies in a wide area."
+		})
+
 	return pool
 
 
@@ -424,6 +526,48 @@ func _apply_upgrade(upgrade_id: StringName) -> void:
 		UPGRADE_THUNDER_LAW_TARGET_COUNT:
 			if _thunder_law_weapon != null:
 				_thunder_law_weapon.target_count += 1
+		UPGRADE_UNLOCK_BAGUA_ARRAY:
+			_is_bagua_array_unlocked = true
+			_set_weapon_unlocked(_bagua_array_weapon, true)
+		UPGRADE_BAGUA_ARRAY_DAMAGE:
+			if _bagua_array_weapon != null:
+				_bagua_array_weapon.damage += 6.0
+		UPGRADE_BAGUA_ARRAY_RADIUS:
+			if _bagua_array_weapon != null:
+				_bagua_array_weapon.radius += 14.0
+		UPGRADE_BAGUA_ARRAY_ROTATION_SPEED:
+			if _bagua_array_weapon != null:
+				_bagua_array_weapon.rotation_speed *= 1.2
+		UPGRADE_BAGUA_ARRAY_TICK_RATE:
+			if _bagua_array_weapon != null:
+				_bagua_array_weapon.tick_rate = maxf(_bagua_array_weapon.tick_rate * 0.9, WeaponBase.MIN_COOLDOWN)
+		UPGRADE_UNLOCK_EXPLOSIVE_TALISMAN:
+			_is_explosive_talisman_unlocked = true
+			_set_weapon_unlocked(_explosive_talisman_weapon, true)
+		UPGRADE_EXPLOSIVE_TALISMAN_RADIUS:
+			if _explosive_talisman_weapon != null:
+				_explosive_talisman_weapon.explosion_radius += 12.0
+		UPGRADE_EXPLOSIVE_TALISMAN_DAMAGE:
+			if _explosive_talisman_weapon != null:
+				_explosive_talisman_weapon.explosion_damage += 8.0
+		UPGRADE_EXPLOSIVE_TALISMAN_COUNT:
+			if _explosive_talisman_weapon != null:
+				_explosive_talisman_weapon.projectile_count += 1
+		UPGRADE_EXPLOSIVE_TALISMAN_COOLDOWN:
+			if _explosive_talisman_weapon != null:
+				_explosive_talisman_weapon.cooldown = maxf(_explosive_talisman_weapon.cooldown * 0.9, WeaponBase.MIN_COOLDOWN)
+		UPGRADE_UNLOCK_MOUNTAIN_SEAL:
+			_is_mountain_seal_unlocked = true
+			_set_weapon_unlocked(_mountain_seal_weapon, true)
+		UPGRADE_MOUNTAIN_SEAL_DAMAGE:
+			if _mountain_seal_weapon != null:
+				_mountain_seal_weapon.damage += 16.0
+		UPGRADE_MOUNTAIN_SEAL_RADIUS:
+			if _mountain_seal_weapon != null:
+				_mountain_seal_weapon.radius += 18.0
+		UPGRADE_MOUNTAIN_SEAL_COOLDOWN:
+			if _mountain_seal_weapon != null:
+				_mountain_seal_weapon.cooldown = maxf(_mountain_seal_weapon.cooldown * 0.9, WeaponBase.MIN_COOLDOWN)
 		UPGRADE_MAX_HP:
 			max_hp += 20.0
 			current_hp = minf(current_hp + 20.0, max_hp)
@@ -448,5 +592,7 @@ func _set_weapon_unlocked(weapon: WeaponBase, is_unlocked: bool) -> void:
 
 	if is_unlocked:
 		weapon.process_mode = Node.PROCESS_MODE_INHERIT
+		weapon.visible = true
 	else:
 		weapon.process_mode = Node.PROCESS_MODE_DISABLED
+		weapon.visible = false
