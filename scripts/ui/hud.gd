@@ -6,12 +6,19 @@ extends CanvasLayer
 @export var game_over_panel_path: NodePath = ^"../GameOverPanel"
 @export var stage_director_path: NodePath = ^"../StageDirector"
 
+const _STATUS_PRIORITY_NONE := 0
+const _STATUS_PRIORITY_DEMON_SEAL := 10
+const _STATUS_PRIORITY_BOSS_WARNING := 20
+const _STATUS_PRIORITY_BOSS_SPAWNED := 30
+const _STATUS_PRIORITY_RUN_FINISHED := 40
+
 var _survival_time: float = 0.0
 var _stage_duration: float = 0.0
 var _displayed_time_seconds: int = -1
 var _kill_count: int = 0
 var _final_level: int = 1
 var _is_run_finished: bool = false
+var _stage_status_priority: int = _STATUS_PRIORITY_NONE
 
 var _player: Player
 var _enemy_spawner: EnemySpawner
@@ -82,6 +89,12 @@ func _connect_stage_director() -> void:
 		_stage_director.connect(&"boss_warning_started", _on_boss_warning_started)
 	if not _stage_director.is_connected(&"boss_spawned", _on_boss_spawned):
 		_stage_director.connect(&"boss_spawned", _on_boss_spawned)
+	if not _stage_director.is_connected(&"demon_seal_spawned", _on_demon_seal_spawned):
+		_stage_director.connect(&"demon_seal_spawned", _on_demon_seal_spawned)
+	if not _stage_director.is_connected(&"demon_seal_progress_changed", _on_demon_seal_progress_changed):
+		_stage_director.connect(&"demon_seal_progress_changed", _on_demon_seal_progress_changed)
+	if not _stage_director.is_connected(&"demon_seal_completed", _on_demon_seal_completed):
+		_stage_director.connect(&"demon_seal_completed", _on_demon_seal_completed)
 	if not _stage_director.is_connected(&"stage_cleared", _on_stage_cleared):
 		_stage_director.connect(&"stage_cleared", _on_stage_cleared)
 
@@ -128,9 +141,19 @@ func _update_kill_label() -> void:
 	_kill_label.text = "镇伏 %d" % _kill_count
 
 
-func _set_stage_status(status_text: String) -> void:
+func _set_stage_status(status_text: String, priority: int = _STATUS_PRIORITY_DEMON_SEAL) -> void:
+	if status_text.is_empty():
+		_stage_status_priority = _STATUS_PRIORITY_NONE
+		_stage_status_label.text = ""
+		_stage_status_label.visible = false
+		return
+
+	if priority < _stage_status_priority:
+		return
+
+	_stage_status_priority = priority
 	_stage_status_label.text = status_text
-	_stage_status_label.visible = not status_text.is_empty()
+	_stage_status_label.visible = true
 
 
 func _format_time(total_seconds: float) -> String:
@@ -168,11 +191,30 @@ func _on_stage_time_changed(elapsed_time: float, stage_duration: float) -> void:
 
 
 func _on_boss_warning_started(_warning_lead_time: float) -> void:
-	_set_stage_status("妖气暴涨，妖王即将降临")
+	_set_stage_status("妖气暴涨，妖王即将降临", _STATUS_PRIORITY_BOSS_WARNING)
 
 
 func _on_boss_spawned(_boss: Enemy) -> void:
-	_set_stage_status("妖王降临")
+	_set_stage_status("妖王降临", _STATUS_PRIORITY_BOSS_SPAWNED)
+
+
+func _on_demon_seal_spawned(_demon_seal: Area2D) -> void:
+	_set_stage_status("镇妖碑已现身", _STATUS_PRIORITY_DEMON_SEAL)
+
+
+func _on_demon_seal_progress_changed(progress_seconds: float, required_seconds: float, is_sealing: bool) -> void:
+	var progress_percent := 0
+	if required_seconds > 0.0:
+		progress_percent = roundi(clampf(progress_seconds / required_seconds, 0.0, 1.0) * 100.0)
+
+	var suffix := ""
+	if not is_sealing:
+		suffix = "（暂停）"
+	_set_stage_status("镇妖碑封印 %d%%%s" % [progress_percent, suffix], _STATUS_PRIORITY_DEMON_SEAL)
+
+
+func _on_demon_seal_completed(_demon_seal: Area2D) -> void:
+	_set_stage_status("镇妖碑封印完成", _STATUS_PRIORITY_DEMON_SEAL)
 
 
 func _on_stage_cleared(stage_time: float) -> void:
@@ -182,7 +224,7 @@ func _on_stage_cleared(stage_time: float) -> void:
 	_is_run_finished = true
 	_survival_time = stage_time
 	_update_time_label(true)
-	_set_stage_status("封印完成")
+	_set_stage_status("封印完成", _STATUS_PRIORITY_RUN_FINISHED)
 	if _game_over_panel != null:
 		_game_over_panel.show_stage_clear(_survival_time, _kill_count, _final_level)
 
@@ -195,7 +237,7 @@ func _on_player_died() -> void:
 
 	_is_run_finished = true
 	_update_time_label(true)
-	_set_stage_status("道消身陨")
+	_set_stage_status("道消身陨", _STATUS_PRIORITY_RUN_FINISHED)
 	if _game_over_panel != null:
 		_game_over_panel.show_summary(_survival_time, _kill_count, _final_level)
 
