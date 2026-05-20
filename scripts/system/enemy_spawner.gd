@@ -10,6 +10,7 @@ const DEFAULT_ENEMY_SCENE: PackedScene = preload("res://scenes/enemy/Enemy.tscn"
 @export var max_enemies: int = 18
 @export var spawn_margin: float = 80.0
 @export var random_seed: int = 1301
+@export var is_spawning_enabled: bool = true
 
 var current_enemy_count: int = 0
 var defeated_enemy_count: int = 0
@@ -24,7 +25,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if enemy_scene == null or max_enemies <= 0:
+	if not is_spawning_enabled or enemy_scene == null or max_enemies <= 0:
 		return
 
 	_spawn_timer -= delta
@@ -55,6 +56,10 @@ func _try_spawn_enemy() -> void:
 	enemy.global_position = _get_spawn_position(player.global_position)
 	enemy.died.connect(_on_enemy_died)
 	current_enemy_count += 1
+
+
+func set_spawning_enabled(is_enabled: bool) -> void:
+	is_spawning_enabled = is_enabled
 
 
 func _get_spawn_position(player_position: Vector2) -> Vector2:
