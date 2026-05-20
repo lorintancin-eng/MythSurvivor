@@ -4,8 +4,15 @@ extends Node2D
 signal enemy_defeated(defeated_count: int)
 
 const DEFAULT_ENEMY_SCENE: PackedScene = preload("res://scenes/enemy/Enemy.tscn")
+const WANDERING_SOUL_ARCHETYPE: Resource = preload("res://resources/enemies/wandering_soul.tres")
+const PAPER_DOLL_ARCHETYPE: Resource = preload("res://resources/enemies/paper_doll.tres")
+const FOX_SPIRIT_ARCHETYPE: Resource = preload("res://resources/enemies/fox_spirit.tres")
+const STONE_GOLEM_ARCHETYPE: Resource = preload("res://resources/enemies/stone_golem.tres")
+const GHOST_FLAME_ARCHETYPE: Resource = preload("res://resources/enemies/ghost_flame.tres")
 
 @export var enemy_scene: PackedScene = DEFAULT_ENEMY_SCENE
+@export var enemy_archetype_pool: Array[Resource] = []
+@export var enemy_archetype_weights: Array[float] = []
 @export var spawn_interval: float = 1.25
 @export var max_enemies: int = 18
 @export var spawn_margin: float = 80.0
@@ -22,6 +29,7 @@ var _spawn_timer: float = 0.0
 func _ready() -> void:
 	_rng.seed = random_seed
 	_spawn_timer = maxf(spawn_interval, 0.1)
+	_ensure_default_archetype_pool()
 
 
 func _process(delta: float) -> void:
@@ -52,6 +60,7 @@ func _try_spawn_enemy() -> void:
 		return
 
 	var enemy := enemy_instance as Enemy
+	enemy.apply_archetype(_select_archetype())
 	add_child(enemy)
 	enemy.global_position = _get_spawn_position(player.global_position)
 	enemy.died.connect(_on_enemy_died)
@@ -60,6 +69,72 @@ func _try_spawn_enemy() -> void:
 
 func set_spawning_enabled(is_enabled: bool) -> void:
 	is_spawning_enabled = is_enabled
+
+
+func get_effective_archetype_count() -> int:
+	if enemy_archetype_pool.is_empty():
+		return 0
+
+	var archetype_count := 0
+	for enemy_archetype in enemy_archetype_pool:
+		if enemy_archetype != null:
+			archetype_count += 1
+
+	return archetype_count
+
+
+func _ensure_default_archetype_pool() -> void:
+	if not enemy_archetype_pool.is_empty():
+		return
+
+	enemy_archetype_pool = [
+		WANDERING_SOUL_ARCHETYPE,
+		PAPER_DOLL_ARCHETYPE,
+		FOX_SPIRIT_ARCHETYPE,
+		STONE_GOLEM_ARCHETYPE,
+		GHOST_FLAME_ARCHETYPE,
+	]
+	enemy_archetype_weights = [
+		3.0,
+		4.0,
+		1.6,
+		0.8,
+		1.2,
+	]
+
+
+func _select_archetype() -> Resource:
+	if enemy_archetype_pool.is_empty():
+		return null
+
+	var total_weight := 0.0
+	for index in enemy_archetype_pool.size():
+		if enemy_archetype_pool[index] == null:
+			continue
+		total_weight += _get_archetype_weight(index)
+
+	if total_weight <= 0.0:
+		return null
+
+	var roll := _rng.randf_range(0.0, total_weight)
+	var running_weight := 0.0
+	for index in enemy_archetype_pool.size():
+		var enemy_archetype: Resource = enemy_archetype_pool[index]
+		if enemy_archetype == null:
+			continue
+
+		running_weight += _get_archetype_weight(index)
+		if roll <= running_weight:
+			return enemy_archetype
+
+	return null
+
+
+func _get_archetype_weight(index: int) -> float:
+	if index < enemy_archetype_weights.size():
+		return maxf(enemy_archetype_weights[index], 0.0)
+
+	return 1.0
 
 
 func _get_spawn_position(player_position: Vector2) -> Vector2:
