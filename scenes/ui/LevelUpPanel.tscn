@@ -23,7 +23,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="Overlay/Center"]
-custom_minimum_size = Vector2(430, 0)
+custom_minimum_size = Vector2(460, 0)
 
 [node name="Margin" type="MarginContainer" parent="Overlay/Center/Panel"]
 theme_override_constants/margin_left = 18
@@ -35,20 +35,20 @@ theme_override_constants/margin_bottom = 18
 theme_override_constants/separation = 12
 
 [node name="TitleLabel" type="Label" parent="Overlay/Center/Panel/Margin/Content"]
-text = "Level Up"
+text = "悟道"
 horizontal_alignment = 1
 
 [node name="Options" type="VBoxContainer" parent="Overlay/Center/Panel/Margin/Content"]
 theme_override_constants/separation = 8
 
 [node name="OptionButton1" type="Button" parent="Overlay/Center/Panel/Margin/Content/Options"]
-custom_minimum_size = Vector2(370, 62)
-text = "Option 1"
+custom_minimum_size = Vector2(400, 76)
+text = "悟道选项一"
 
 [node name="OptionButton2" type="Button" parent="Overlay/Center/Panel/Margin/Content/Options"]
-custom_minimum_size = Vector2(370, 62)
-text = "Option 2"
+custom_minimum_size = Vector2(400, 76)
+text = "悟道选项二"
 
 [node name="OptionButton3" type="Button" parent="Overlay/Center/Panel/Margin/Content/Options"]
-custom_minimum_size = Vector2(370, 62)
-text = "Option 3"
+custom_minimum_size = Vector2(400, 76)
+text = "悟道选项三"

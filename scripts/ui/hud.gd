@@ -138,7 +138,7 @@ func _update_time_label(force: bool = false) -> void:
 
 
 func _update_kill_label() -> void:
-	_kill_label.text = "镇伏 %d" % _kill_count
+	_kill_label.text = "镇妖数 %d" % _kill_count
 
 
 func _set_stage_status(status_text: String, priority: int = _STATUS_PRIORITY_DEMON_SEAL) -> void:

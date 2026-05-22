@@ -292,179 +292,179 @@ func _get_upgrade_pool() -> Array[Dictionary]:
 	var pool: Array[Dictionary] = [
 		{
 			"id": UPGRADE_TALISMAN_DAMAGE,
-			"title": "Talisman Damage +10",
-			"description": "Increase talisman projectile damage by 10."
+			"title": "追魂符威力 +10",
+			"description": "追魂符击中妖物时伤害提高 10。"
 		},
 		{
 			"id": UPGRADE_TALISMAN_COOLDOWN,
-			"title": "Talisman Cooldown -10%",
-			"description": "Fire talisman projectiles 10% faster."
+			"title": "追魂符施放 -10%",
+			"description": "追魂符出手间隔缩短 10%。"
 		},
 		{
 			"id": UPGRADE_TALISMAN_COUNT,
-			"title": "Talisman Count +1",
-			"description": "Fire 1 more talisman projectile per attack."
+			"title": "追魂符数量 +1",
+			"description": "每次施法额外祭出 1 枚追魂符。"
 		},
 		{
 			"id": UPGRADE_TALISMAN_SPEED,
-			"title": "Talisman Speed +15%",
-			"description": "Increase talisman projectile speed by 15%."
+			"title": "追魂符飞行 +15%",
+			"description": "追魂符飞行速度提高 15%。"
 		},
 		{
 			"id": UPGRADE_MAX_HP,
-			"title": "Max Health +20",
-			"description": "Increase maximum health by 20 and heal that amount."
+			"title": "气血上限 +20",
+			"description": "气血上限提高 20，并回复等量气血。"
 		},
 		{
 			"id": UPGRADE_MOVE_SPEED,
-			"title": "Move Speed +10%",
-			"description": "Increase player movement speed by 10%."
+			"title": "身法 +10%",
+			"description": "行走身法提升，移动速度提高 10%。"
 		},
 		{
 			"id": UPGRADE_PICKUP_RADIUS,
-			"title": "Pickup Range +18",
-			"description": "Absorb cultivation orbs from farther away."
+			"title": "摄取范围 +18",
+			"description": "可从更远处吸纳修为灵光。"
 		},
 		{
 			"id": UPGRADE_XP_GAIN,
-			"title": "Cultivation Gain +10%",
-			"description": "Gain 10% more cultivation from experience orbs."
+			"title": "修为获取 +10%",
+			"description": "吸收修为灵光时获得的修为提高 10%。"
 		}
 	]
 
 	if _is_flying_sword_unlocked:
 		pool.append({
 			"id": UPGRADE_FLYING_SWORD_DAMAGE,
-			"title": "Flying Sword Damage +8",
-			"description": "Increase flying sword projectile damage by 8."
+			"title": "飞剑威力 +8",
+			"description": "飞剑斩妖伤害提高 8。"
 		})
 		pool.append({
 			"id": UPGRADE_FLYING_SWORD_COOLDOWN,
-			"title": "Flying Sword Cooldown -10%",
-			"description": "Launch flying sword projectiles 10% faster."
+			"title": "飞剑出鞘 -10%",
+			"description": "飞剑出鞘间隔缩短 10%。"
 		})
 		pool.append({
 			"id": UPGRADE_FLYING_SWORD_PIERCE,
-			"title": "Flying Sword Pierce +1",
-			"description": "Flying sword projectiles can pierce 1 more enemy."
+			"title": "飞剑贯穿 +1",
+			"description": "飞剑可额外贯穿 1 个妖物。"
 		})
 		pool.append({
 			"id": UPGRADE_FLYING_SWORD_COUNT,
-			"title": "Flying Sword Count +1",
-			"description": "Launch 1 more flying sword projectile per attack."
+			"title": "飞剑数量 +1",
+			"description": "每次御剑额外放出 1 柄飞剑。"
 		})
 	else:
 		pool.append({
 			"id": UPGRADE_UNLOCK_FLYING_SWORD,
-			"title": "Unlock Flying Sword",
-			"description": "Gain an orbit-forged sword that seeks nearby enemies."
+			"title": "悟得飞剑",
+			"description": "唤出飞剑护身，自动追击附近妖物。"
 		})
 
 	if _is_thunder_law_unlocked:
 		pool.append({
 			"id": UPGRADE_THUNDER_LAW_DAMAGE,
-			"title": "Thunder Charm Damage +10",
-			"description": "Increase thunder charm strike damage by 10."
+			"title": "雷电符咒威力 +10",
+			"description": "雷电符咒落雷伤害提高 10。"
 		})
 		pool.append({
 			"id": UPGRADE_THUNDER_LAW_COOLDOWN,
-			"title": "Thunder Charm Cooldown -10%",
-			"description": "Call thunder charm strikes 10% faster."
+			"title": "雷电符咒施放 -10%",
+			"description": "雷电符咒引雷间隔缩短 10%。"
 		})
 		pool.append({
 			"id": UPGRADE_THUNDER_LAW_RADIUS,
-			"title": "Thunder Charm Range +16",
-			"description": "Increase thunder charm strike radius by 16."
+			"title": "雷电符咒范围 +16",
+			"description": "雷电符咒落雷范围扩大 16。"
 		})
 		pool.append({
 			"id": UPGRADE_THUNDER_LAW_TARGET_COUNT,
-			"title": "Thunder Charm Targets +1",
-			"description": "Strike 1 more target per thunder charm cast."
+			"title": "雷电符咒目标 +1",
+			"description": "每次施咒额外轰击 1 个目标。"
 		})
 	else:
 		pool.append({
 			"id": UPGRADE_UNLOCK_THUNDER_LAW,
-			"title": "Unlock Thunder Charm",
-			"description": "Gain a thunder charm that strikes clustered enemies."
+			"title": "悟得雷电符咒",
+			"description": "绘成雷电符咒，轰击聚集的妖物。"
 		})
 
 	if _is_bagua_array_unlocked:
 		pool.append({
 			"id": UPGRADE_BAGUA_ARRAY_DAMAGE,
-			"title": "Bagua Array Damage +6",
-			"description": "Increase Bagua array pulse damage by 6."
+			"title": "八卦阵威力 +6",
+			"description": "八卦阵灵光脉冲伤害提高 6。"
 		})
 		pool.append({
 			"id": UPGRADE_BAGUA_ARRAY_RADIUS,
-			"title": "Bagua Array Radius +14",
-			"description": "Increase Bagua array damage radius by 14."
+			"title": "八卦阵范围 +14",
+			"description": "八卦阵伤害范围扩大 14。"
 		})
 		pool.append({
 			"id": UPGRADE_BAGUA_ARRAY_ROTATION_SPEED,
-			"title": "Bagua Array Spin +20%",
-			"description": "Increase Bagua array rotation speed by 20%."
+			"title": "八卦阵运转 +20%",
+			"description": "八卦阵旋转速度提高 20%。"
 		})
 		pool.append({
 			"id": UPGRADE_BAGUA_ARRAY_TICK_RATE,
-			"title": "Bagua Array Pulse -10%",
-			"description": "Make Bagua array damage pulses 10% faster."
+			"title": "八卦阵脉冲 -10%",
+			"description": "八卦阵伤害脉冲间隔缩短 10%。"
 		})
 	else:
 		pool.append({
 			"id": UPGRADE_UNLOCK_BAGUA_ARRAY,
-			"title": "Unlock Bagua Array",
-			"description": "Gain a rotating array that damages nearby enemies."
+			"title": "悟得八卦阵",
+			"description": "布下旋转阵势，持续伤及近身妖物。"
 		})
 
 	if _is_explosive_talisman_unlocked:
 		pool.append({
 			"id": UPGRADE_EXPLOSIVE_TALISMAN_RADIUS,
-			"title": "Explosive Talisman Radius +12",
-			"description": "Increase explosive talisman blast radius by 12."
+			"title": "爆裂符范围 +12",
+			"description": "爆裂符爆发范围扩大 12。"
 		})
 		pool.append({
 			"id": UPGRADE_EXPLOSIVE_TALISMAN_DAMAGE,
-			"title": "Explosive Talisman Damage +8",
-			"description": "Increase explosive talisman blast damage by 8."
+			"title": "爆裂符威力 +8",
+			"description": "爆裂符爆发伤害提高 8。"
 		})
 		pool.append({
 			"id": UPGRADE_EXPLOSIVE_TALISMAN_COUNT,
-			"title": "Explosive Talisman Count +1",
-			"description": "Launch 1 more explosive talisman per attack."
+			"title": "爆裂符数量 +1",
+			"description": "每次施法额外祭出 1 枚爆裂符。"
 		})
 		pool.append({
 			"id": UPGRADE_EXPLOSIVE_TALISMAN_COOLDOWN,
-			"title": "Explosive Talisman Cooldown -10%",
-			"description": "Launch explosive talismans 10% faster."
+			"title": "爆裂符施放 -10%",
+			"description": "爆裂符施放间隔缩短 10%。"
 		})
 	else:
 		pool.append({
 			"id": UPGRADE_UNLOCK_EXPLOSIVE_TALISMAN,
-			"title": "Unlock Explosive Talisman",
-			"description": "Gain a talisman that detonates on impact."
+			"title": "悟得爆裂符",
+			"description": "祭出触敌即爆的符箓，震散妖群。"
 		})
 
 	if _is_mountain_seal_unlocked:
 		pool.append({
 			"id": UPGRADE_MOUNTAIN_SEAL_DAMAGE,
-			"title": "Mountain Seal Damage +16",
-			"description": "Increase mountain seal impact damage by 16."
+			"title": "山河印威力 +16",
+			"description": "山河印砸落伤害提高 16。"
 		})
 		pool.append({
 			"id": UPGRADE_MOUNTAIN_SEAL_RADIUS,
-			"title": "Mountain Seal Radius +18",
-			"description": "Increase mountain seal impact radius by 18."
+			"title": "山河印范围 +18",
+			"description": "山河印砸落范围扩大 18。"
 		})
 		pool.append({
 			"id": UPGRADE_MOUNTAIN_SEAL_COOLDOWN,
-			"title": "Mountain Seal Cooldown -10%",
-			"description": "Call mountain seals 10% faster."
+			"title": "山河印显化 -10%",
+			"description": "山河印显化间隔缩短 10%。"
 		})
 	else:
 		pool.append({
 			"id": UPGRADE_UNLOCK_MOUNTAIN_SEAL,
-			"title": "Unlock Mountain Seal",
-			"description": "Gain a heavy seal that crushes enemies in a wide area."
+			"title": "悟得山河印",
+			"description": "凝出重印镇落，压制大片妖物。"
 		})
 
 	return pool

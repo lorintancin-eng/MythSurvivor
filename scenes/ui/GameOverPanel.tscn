@@ -43,7 +43,7 @@ text = "存活时间 00:00"
 horizontal_alignment = 1
 
 [node name="KillLabel" type="Label" parent="Overlay/Center/Panel/Margin/Content"]
-text = "镇伏数量 0"
+text = "镇妖数 0"
 horizontal_alignment = 1
 
 [node name="LevelLabel" type="Label" parent="Overlay/Center/Panel/Margin/Content"]

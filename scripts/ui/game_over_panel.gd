@@ -27,7 +27,7 @@ func show_stage_clear(stage_time: float, kill_count: int, final_level: int) -> v
 func _show_result(title: String, time_label: String, result_time: float, kill_count: int, final_level: int) -> void:
 	_title_label.text = title
 	_time_label.text = "%s %s" % [time_label, _format_time(result_time)]
-	_kill_label.text = "镇伏数量 %d" % maxi(kill_count, 0)
+	_kill_label.text = "镇妖数 %d" % maxi(kill_count, 0)
 	_level_label.text = "最终境界 %d" % maxi(final_level, 1)
 	_restart_button.text = "再入劫境"
 	visible = true

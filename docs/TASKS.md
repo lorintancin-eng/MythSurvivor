@@ -212,19 +212,19 @@ v0.2 的目标是完成第一关“荒山古道”的 5 分钟闯关闭环：
 
 ## 阶段 8：UI 与术语包装
 
-- [ ] 替换游戏内术语。
+- [x] 替换游戏内术语。
   - 分支建议：`codex/ui-myth-terms`
   - 内容：HP -> 气血，XP -> 修为，Level -> 境界，Upgrade -> 悟道，Kill Count -> 镇妖数，Game Over -> 道消身陨，Restart -> 再入劫境。
   - 允许修改：`scripts/ui/**`、`scenes/ui/**`、必要时升级文案。
   - 验收：HUD、升级面板、GameOver 文案统一。
 
-- [ ] 新增 BOSS 预警 UI。
+- [x] 新增 BOSS 预警 UI。
   - 分支建议：`codex/ui-boss-warning`
   - 内容：4:30 显示“妖王降临”或妖气暴涨提示。
   - 依赖：关卡计时系统。
   - 验收：预警不遮挡升级选择，不影响操作。
 
-- [ ] 新增通关 UI。
+- [x] 新增通关 UI。
   - 分支建议：`codex/ui-stage-clear`
   - 内容：BOSS 死亡后显示“封印完成”。
   - 依赖：关卡完成流程。

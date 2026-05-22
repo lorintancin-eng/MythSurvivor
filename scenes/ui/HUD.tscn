@@ -34,7 +34,7 @@ text = "修为 0 / 0"
 text = "历劫时间 00:00 / 05:00"
 
 [node name="KillLabel" type="Label" parent="Panel/Margin/Content"]
-text = "镇伏 0"
+text = "镇妖数 0"
 
 [node name="StageStatusLabel" type="Label" parent="Panel/Margin/Content"]
 visible = false
