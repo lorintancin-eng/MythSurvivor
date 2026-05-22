@@ -11,7 +11,7 @@ signal demon_seal_completed(demon_seal: Area2D)
 signal stage_cleared(elapsed_time: float)
 signal stage_failed(elapsed_time: float)
 
-const DEFAULT_BOSS_SCENE: PackedScene = preload("res://scenes/enemy/Enemy.tscn")
+const DEFAULT_BOSS_SCENE: PackedScene = preload("res://scenes/enemy/FamineBeastBoss.tscn")
 const DEFAULT_DEMON_SEAL_SCENE: PackedScene = preload("res://scenes/system/DemonSeal.tscn")
 const DEFAULT_EXPERIENCE_ORB_SCENE: PackedScene = preload("res://scenes/system/ExperienceOrb.tscn")
 const SHANXIAO_ELITE_ARCHETYPE: Resource = preload("res://resources/enemies/shanxiao_elite.tres")
@@ -163,11 +163,12 @@ func _spawn_boss() -> void:
 
 	var boss := boss_instance as Enemy
 	boss.name = "FamineBeastBoss"
-	boss.move_speed = boss_move_speed
-	boss.max_hp = boss_max_hp
-	boss.damage = boss_damage
+	if boss.archetype == null:
+		boss.move_speed = boss_move_speed
+		boss.max_hp = boss_max_hp
+		boss.damage = boss_damage
+		boss.scale = Vector2.ONE * boss_scale
 	boss.xp_drop_value = 0.0
-	boss.scale = Vector2.ONE * boss_scale
 	boss.died.connect(_on_boss_died)
 
 	_get_spawn_parent().add_child(boss)
