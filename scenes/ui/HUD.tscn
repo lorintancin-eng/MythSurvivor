@@ -40,3 +40,43 @@ text = "镇妖数 0"
 visible = false
 text = "妖王降临"
 autowrap_mode = 2
+
+[node name="EnergyPanel" type="PanelContainer" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -200.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 110.0
+grow_horizontal = 0
+visible = false
+
+[node name="EnergyVBox" type="VBoxContainer" parent="EnergyPanel"]
+theme_override_constants/separation = 4
+
+[node name="EnergyMargin" type="MarginContainer" parent="EnergyPanel/EnergyVBox"]
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="EnergyContent" type="VBoxContainer" parent="EnergyPanel/EnergyVBox/EnergyMargin"]
+theme_override_constants/separation = 6
+
+[node name="EnergyLabel" type="Label" parent="EnergyPanel/EnergyVBox/EnergyMargin/EnergyContent"]
+text = "灵气"
+horizontal_alignment = 1
+
+[node name="EnergyBar" type="ProgressBar" parent="EnergyPanel/EnergyVBox/EnergyMargin/EnergyContent"]
+min_value = 0.0
+max_value = 30.0
+value = 0.0
+custom_minimum_size = Vector2(140, 12)
+show_percentage = false
+
+[node name="EnergyValueLabel" type="Label" parent="EnergyPanel/EnergyVBox/EnergyMargin/EnergyContent"]
+text = "0/30"
+horizontal_alignment = 1

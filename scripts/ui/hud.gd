@@ -31,6 +31,10 @@ var _stage_director: Node
 @onready var _time_label: Label = $Panel/Margin/Content/TimeLabel
 @onready var _kill_label: Label = $Panel/Margin/Content/KillLabel
 @onready var _stage_status_label: Label = $Panel/Margin/Content/StageStatusLabel
+@onready var _energy_panel: Control = $EnergyPanel
+@onready var _energy_label: Label = $EnergyPanel/EnergyVBox/EnergyMargin/EnergyContent/EnergyLabel
+@onready var _energy_bar: ProgressBar = $EnergyPanel/EnergyVBox/EnergyMargin/EnergyContent/EnergyBar
+@onready var _energy_value_label: Label = $EnergyPanel/EnergyVBox/EnergyMargin/EnergyContent/EnergyValueLabel
 
 
 func _ready() -> void:
@@ -46,14 +50,14 @@ func _ready() -> void:
 	_update_time_label(true)
 	_update_kill_label()
 	_set_stage_status("")
+	_setup_energy_bar()
 
 
 func _process(delta: float) -> void:
-	if _is_run_finished or _stage_director != null:
-		return
-
-	_survival_time += delta
-	_update_time_label()
+	if not (_is_run_finished or _stage_director != null):
+		_survival_time += delta
+		_update_time_label()
+	_update_energy_bar()
 
 
 func _connect_player() -> void:
@@ -242,3 +246,47 @@ func _on_player_died() -> void:
 		_game_over_panel.show_summary(_survival_time, _kill_count, _final_level)
 
 	get_tree().paused = true
+
+
+func _setup_energy_bar() -> void:
+	if _player == null:
+		_energy_panel.visible = false
+		return
+	var character_base = _player.get("_character_base")
+	if character_base == null:
+		_energy_panel.visible = false
+		return
+	var config = character_base.get("energy_bar_config")
+	if config == null or config.is_empty():
+		_energy_panel.visible = false
+		return
+	_energy_bar.max_value = config.get("max_value", 30.0)
+	_energy_bar.value = 0.0
+	_energy_label.text = config.get("label", "能量")
+	_energy_panel.visible = true
+	if character_base.has_signal("energy_full_triggered"):
+		if not character_base.energy_full_triggered.is_connected(_on_energy_full):
+			character_base.energy_full_triggered.connect(_on_energy_full)
+
+
+func _update_energy_bar() -> void:
+	if not _energy_panel.visible:
+		return
+	if _player == null:
+		return
+	var character_base = _player.get("_character_base")
+	if character_base == null:
+		return
+	var current = character_base.get("current_lingqi")
+	if current == null:
+		return
+	_energy_bar.value = current
+	_energy_value_label.text = "%d/%d" % [int(current), int(_energy_bar.max_value)]
+	if current >= _energy_bar.max_value:
+		_energy_bar.modulate = Color(1.0, 0.9, 0.3)
+	else:
+		_energy_bar.modulate = Color.WHITE
+
+
+func _on_energy_full() -> void:
+	pass
