@@ -15,7 +15,8 @@ extends Node
 ##
 ## 详见 docs/02_CHARACTER_DESIGN.md §3
 
-# 角色专属能量满时触发，供 HUD 等订阅
+# 角色专属能量满时触发，供 HUD 和子类（如 SunWukong）emit；基类自己不 emit
+@warning_ignore("UNUSED_SIGNAL")
 signal energy_full_triggered
 
 # ─────────────────────────────────────────────

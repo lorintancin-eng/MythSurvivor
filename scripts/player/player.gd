@@ -660,7 +660,7 @@ func _apply_upgrade(upgrade_id: StringName) -> void:
 		"wukong_hair_clone_count":
 			var _hc_cnt := get_node_or_null("HairCloneWeapon")
 			if _hc_cnt != null:
-				_hc_cnt.projectile_count += 1
+				_hc_cnt.clone_count += 1
 		_:
 			push_warning("Unknown upgrade selected: %s" % String(upgrade_id))
 			return
