@@ -37,6 +37,15 @@ var _cached_character_base: Node = null
 @onready var _energy_label: Label = $EnergyPanel/EnergyVBox/EnergyMargin/EnergyContent/EnergyLabel
 @onready var _energy_bar: ProgressBar = $EnergyPanel/EnergyVBox/EnergyMargin/EnergyContent/EnergyBar
 @onready var _energy_value_label: Label = $EnergyPanel/EnergyVBox/EnergyMargin/EnergyContent/EnergyValueLabel
+@onready var _skill_panel: PanelContainer = $SkillPanel
+@onready var _skill_icon_1: ColorRect = $SkillPanel/SkillHBox/SkillMargin/SkillRow/SkillSlot1/SkillIcon1
+@onready var _skill_label_1: Label = $SkillPanel/SkillHBox/SkillMargin/SkillRow/SkillSlot1/SkillLabel1
+@onready var _skill_icon_2: ColorRect = $SkillPanel/SkillHBox/SkillMargin/SkillRow/SkillSlot2/SkillIcon2
+@onready var _skill_label_2: Label = $SkillPanel/SkillHBox/SkillMargin/SkillRow/SkillSlot2/SkillLabel2
+@onready var _skill_icon_3: ColorRect = $SkillPanel/SkillHBox/SkillMargin/SkillRow/SkillSlot3/SkillIcon3
+@onready var _skill_label_3: Label = $SkillPanel/SkillHBox/SkillMargin/SkillRow/SkillSlot3/SkillLabel3
+@onready var _skill_icon_4: ColorRect = $SkillPanel/SkillHBox/SkillMargin/SkillRow/SkillSlot4/SkillIcon4
+@onready var _skill_label_4: Label = $SkillPanel/SkillHBox/SkillMargin/SkillRow/SkillSlot4/SkillLabel4
 
 
 func _ready() -> void:
@@ -53,6 +62,7 @@ func _ready() -> void:
 	_update_kill_label()
 	_set_stage_status("")
 	_setup_energy_bar()
+	_setup_skill_panel()
 
 
 func _process(delta: float) -> void:
@@ -305,3 +315,65 @@ func _on_energy_full() -> void:
 	var tween := create_tween()
 	tween.tween_property(_energy_bar, "scale", Vector2(1.2, 1.2), 0.1)
 	tween.tween_property(_energy_bar, "scale", Vector2(1.0, 1.0), 0.2)
+
+
+func _setup_skill_panel() -> void:
+	if _player == null:
+		_skill_panel.visible = false
+		return
+	var character_base = _player.get("_character_base")
+	if character_base == null:
+		_skill_panel.visible = false
+		return
+	# 仅孙悟空显示主动技能 cooldown 面板
+	if character_base.character_id != "sun_wukong":
+		_skill_panel.visible = false
+		return
+	_skill_panel.visible = true
+	# 4 个 slot 初始化为未解锁灰显状态
+	for slot in range(4):
+		update_skill_cooldown(slot, 0.0, 0.0, false)
+
+
+# 公开接口：W204 起 ActiveSkillCharacter 子类调用此方法更新 4 个技能槽显示
+# slot: 0-3 对应键位 1/2/3/4
+# remaining: 剩余 cooldown 秒数（<=0 表示就绪）
+# max_cd: 技能总 cooldown（暂未用，预留显示进度环时用）
+# unlocked: 是否已解锁
+func update_skill_cooldown(slot: int, remaining: float, _max_cd: float, unlocked: bool) -> void:
+	if slot < 0 or slot > 3:
+		return
+	var icon: ColorRect = _get_skill_icon(slot)
+	var label: Label = _get_skill_label(slot)
+	if icon == null or label == null:
+		return
+	if not unlocked:
+		# 灰显
+		icon.color = Color(0.3, 0.3, 0.3, 1.0)
+		label.text = "--"
+	elif remaining > 0.0:
+		# cooldown 中
+		icon.color = Color(0.6, 0.5, 0.2, 1.0)  # 暗金
+		label.text = "%ds" % ceili(remaining)
+	else:
+		# 就绪
+		icon.color = Color(1.0, 0.8, 0.3, 1.0)  # 亮金
+		label.text = str(slot + 1)
+
+
+func _get_skill_icon(slot: int) -> ColorRect:
+	match slot:
+		0: return _skill_icon_1
+		1: return _skill_icon_2
+		2: return _skill_icon_3
+		3: return _skill_icon_4
+	return null
+
+
+func _get_skill_label(slot: int) -> Label:
+	match slot:
+		0: return _skill_label_1
+		1: return _skill_label_2
+		2: return _skill_label_3
+		3: return _skill_label_4
+	return null
