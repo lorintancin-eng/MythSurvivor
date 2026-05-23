@@ -44,8 +44,8 @@ const WAVE_BOSS_WARNING_START_TIME: float = 270.0
 @export var boss_phase_spawn_interval: float = 2.5
 @export var boss_phase_max_enemies: int = 8
 @export var demon_seal_spawn_time: float = 120.0
-@export var demon_seal_min_spawn_distance: float = 180.0
-@export var demon_seal_max_spawn_distance: float = 260.0
+@export var demon_seal_min_spawn_distance: float = 200.0
+@export var demon_seal_max_spawn_distance: float = 280.0
 @export var demon_seal_required_seconds: float = 8.0
 @export var demon_seal_pressure_interval_multiplier: float = 0.65
 @export var demon_seal_pressure_max_enemy_bonus: int = 6
@@ -363,7 +363,9 @@ func _get_demon_seal_spawn_position() -> Vector2:
 
 	var angle := _rng.randf_range(0.0, TAU)
 	var distance := _rng.randf_range(demon_seal_min_spawn_distance, demon_seal_max_spawn_distance)
-	return player_position + Vector2.RIGHT.rotated(angle) * distance
+	var base_pos := player_position + Vector2.RIGHT.rotated(angle) * distance
+	var jitter := Vector2(_rng.randf_range(-30.0, 30.0), _rng.randf_range(-30.0, 30.0))
+	return base_pos + jitter
 
 
 func _get_elite_spawn_position() -> Vector2:
