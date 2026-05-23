@@ -33,19 +33,53 @@ func _init() -> void:
 	}
 
 
+# ─────────────────────────────────────────────
+# 灵气状态（运行时）
+# ─────────────────────────────────────────────
+
+## 当前灵气累积值，由 _on_kill 充能
+var current_lingqi: float = 0.0
+
+## 灵气是否已用于触发七十二变（防止重复触发）
+var _is_72_transform_active: bool = false
+
+
 ## 击杀敌人时充能灵气。
-## TODO T203: 普通怪 +1 灵气，精英 +5 灵气，Boss 不触发。
+## 普通怪 +1 灵气，精英 +5 灵气，Boss 不触发。
 ## 参数类型必须是 Node（基类约定，避免对 Enemy 的循环依赖）。
-func _on_kill(_enemy: Node) -> void:
-	pass
+func _on_kill(enemy: Node) -> void:
+	if _is_72_transform_active:
+		return
+	if enemy == null:
+		return
+	# Boss 不触发灵气充能
+	if enemy.is_in_group("bosses"):
+		return
+	# 精英 +5，普通 +1
+	var gain: float = 5.0 if enemy.get("is_elite") == true else 1.0
+	current_lingqi = minf(current_lingqi + gain, energy_bar_config.get("max_value", 30.0))
+	if current_lingqi >= energy_bar_config.get("max_value", 30.0):
+		_on_energy_full()
 
 
 ## 灵气满时自动触发七十二变。
-## TODO T203: 3 秒内伤害+50% / 移速+30% / 无敌（敌人无法瞄准）。
-## 触发时玩家剪影变小猴 + 青烟环绕；触发后灵气清零。
-## 同时 emit energy_full_triggered signal 供 HUD 监听（R008 follow-up）。
+## 3 秒内伤害+50% / 移速+30% / 无敌（敌人无法瞄准）。
+## 触发时 emit energy_full_triggered signal 供 HUD 监听；触发后灵气清零。
 func _on_energy_full() -> void:
-	pass
+	if _is_72_transform_active:
+		return
+	_is_72_transform_active = true
+	energy_full_triggered.emit()
+	# 影响 player：3 秒无敌 + 移速 +30%
+	if owner != null:
+		if owner.has_method("set_invincible"):
+			owner.set_invincible(true)
+		if owner.has_method("set_speed_multiplier"):
+			owner.set_speed_multiplier(1.3)
+		if owner.has_method("set_damage_multiplier"):
+			owner.set_damage_multiplier(1.5)
+	# 3 秒后恢复
+	get_tree().create_timer(3.0).timeout.connect(_on_72_transform_ended)
 
 
 ## 孙悟空专属升级池 ID 列表（供 T207 升级池过滤使用）。
@@ -56,3 +90,15 @@ func _get_allowed_upgrade_ids() -> Array[String]:
 		"wukong_jingu_bang_extend",
 		"wukong_hair_clone",
 	]
+
+
+func _on_72_transform_ended() -> void:
+	_is_72_transform_active = false
+	current_lingqi = 0.0
+	if owner != null:
+		if owner.has_method("set_invincible"):
+			owner.set_invincible(false)
+		if owner.has_method("set_speed_multiplier"):
+			owner.set_speed_multiplier(1.0)
+		if owner.has_method("set_damage_multiplier"):
+			owner.set_damage_multiplier(1.0)

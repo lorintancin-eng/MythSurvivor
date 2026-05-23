@@ -69,6 +69,9 @@ var _is_explosive_talisman_unlocked: bool = false
 var _is_mountain_seal_unlocked: bool = false
 var _upgrade_rng := RandomNumberGenerator.new()
 var _level_up_panel: LevelUpPanel
+var _is_invincible: bool = false
+var _speed_multiplier: float = 1.0
+var _damage_multiplier: float = 1.0
 
 @onready var _health_fill: Polygon2D = $HealthBar/Fill
 @onready var _talisman_weapon: TalismanWeapon = $TalismanWeapon
@@ -99,6 +102,10 @@ func _ready() -> void:
 	_update_health_bar()
 	health_changed.emit(current_hp, max_hp)
 	experience_changed.emit(current_xp, xp_to_next_level, level)
+	# 连接 EnemySpawner 的 enemy_killed signal 到角色基类 _on_kill 转发
+	var spawner := get_parent().get_node_or_null("EnemySpawner")
+	if spawner != null and spawner.has_signal("enemy_killed"):
+		spawner.enemy_killed.connect(_on_enemy_killed)
 
 
 func _physics_process(_delta: float) -> void:
@@ -107,12 +114,12 @@ func _physics_process(_delta: float) -> void:
 		return
 
 	var input_direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = input_direction * move_speed
+	velocity = input_direction * move_speed * _speed_multiplier
 	move_and_slide()
 
 
 func take_damage(amount: float) -> void:
-	if _is_dead or amount <= 0.0:
+	if _is_dead or _is_invincible or amount <= 0.0:
 		return
 
 	current_hp = maxf(current_hp - amount, 0.0)
@@ -600,3 +607,24 @@ func _set_weapon_unlocked(weapon: WeaponBase, is_unlocked: bool) -> void:
 	else:
 		weapon.process_mode = Node.PROCESS_MODE_DISABLED
 		weapon.visible = false
+
+
+# 由 CharacterBase 子类调用，控制玩家无敌状态（七十二变等）
+func set_invincible(value: bool) -> void:
+	_is_invincible = value
+
+
+# 由 CharacterBase 子类调用，临时调整移速倍率
+func set_speed_multiplier(value: float) -> void:
+	_speed_multiplier = value
+
+
+# 由 CharacterBase 子类调用，临时调整伤害倍率（T204+ 武器接入）
+func set_damage_multiplier(value: float) -> void:
+	_damage_multiplier = value
+
+
+# EnemySpawner 击杀信号转发到角色基类
+func _on_enemy_killed(enemy: Node) -> void:
+	if _character_base != null:
+		_character_base._on_kill(enemy)

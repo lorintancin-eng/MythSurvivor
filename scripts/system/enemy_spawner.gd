@@ -3,6 +3,7 @@ extends Node2D
 
 signal enemy_defeated(defeated_count: int)
 signal elite_spawned(elite: Enemy, affixes: Array[String])
+signal enemy_killed(enemy: Enemy)
 
 const DEFAULT_ENEMY_SCENE: PackedScene = preload("res://scenes/enemy/Enemy.tscn")
 const WANDERING_SOUL_ARCHETYPE: Resource = preload("res://resources/enemies/wandering_soul.tres")
@@ -219,5 +220,6 @@ func _get_spawn_position(player_position: Vector2) -> Vector2:
 
 func _on_enemy_died(_enemy: Enemy) -> void:
 	current_enemy_count = maxi(current_enemy_count - 1, 0)
+	enemy_killed.emit(_enemy)
 	defeated_enemy_count += 1
 	enemy_defeated.emit(defeated_enemy_count)
