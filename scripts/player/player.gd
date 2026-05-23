@@ -45,9 +45,9 @@ const UPGRADE_XP_GAIN := &"xp_gain"
 
 @export var move_speed: float = 180.0
 @export var max_hp: float = 100.0
-@export var initial_xp_to_next_level: float = 20.0
-@export var xp_growth_multiplier: float = 1.25
-@export var xp_growth_flat: float = 5.0
+@export var initial_xp_to_next_level: float = 18.0
+@export var xp_growth_multiplier: float = 1.28
+@export var xp_growth_flat: float = 6.0
 @export var upgrade_random_seed: int = 2401
 @export var level_up_panel_scene: PackedScene = DEFAULT_LEVEL_UP_PANEL_SCENE
 @export var xp_gain_multiplier: float = 1.0

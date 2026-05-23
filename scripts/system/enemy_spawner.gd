@@ -75,6 +75,33 @@ func set_spawning_enabled(is_enabled: bool) -> void:
 	is_spawning_enabled = is_enabled
 
 
+func apply_wave_config(
+	new_spawn_interval: float,
+	new_max_enemies: int,
+	new_archetype_pool: Array[Resource],
+	new_archetype_weights: Array[float]
+) -> void:
+	spawn_interval = maxf(new_spawn_interval, 0.1)
+	max_enemies = maxi(new_max_enemies, 0)
+	_spawn_timer = minf(_spawn_timer, spawn_interval)
+
+	enemy_archetype_pool.clear()
+	for enemy_archetype in new_archetype_pool:
+		if enemy_archetype != null:
+			enemy_archetype_pool.append(enemy_archetype)
+
+	if enemy_archetype_pool.is_empty():
+		_ensure_default_archetype_pool()
+		return
+
+	enemy_archetype_weights.clear()
+	for index in enemy_archetype_pool.size():
+		var weight := 1.0
+		if index < new_archetype_weights.size():
+			weight = new_archetype_weights[index]
+		enemy_archetype_weights.append(maxf(weight, 0.0))
+
+
 func get_effective_archetype_count() -> int:
 	if enemy_archetype_pool.is_empty():
 		return 0

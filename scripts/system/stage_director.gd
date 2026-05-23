@@ -14,11 +14,20 @@ signal stage_failed(elapsed_time: float)
 const DEFAULT_BOSS_SCENE: PackedScene = preload("res://scenes/enemy/FamineBeastBoss.tscn")
 const DEFAULT_DEMON_SEAL_SCENE: PackedScene = preload("res://scenes/system/DemonSeal.tscn")
 const DEFAULT_EXPERIENCE_ORB_SCENE: PackedScene = preload("res://scenes/system/ExperienceOrb.tscn")
+const WANDERING_SOUL_ARCHETYPE: Resource = preload("res://resources/enemies/wandering_soul.tres")
+const PAPER_DOLL_ARCHETYPE: Resource = preload("res://resources/enemies/paper_doll.tres")
+const FOX_SPIRIT_ARCHETYPE: Resource = preload("res://resources/enemies/fox_spirit.tres")
+const STONE_GOLEM_ARCHETYPE: Resource = preload("res://resources/enemies/stone_golem.tres")
+const GHOST_FLAME_ARCHETYPE: Resource = preload("res://resources/enemies/ghost_flame.tres")
 const SHANXIAO_ELITE_ARCHETYPE: Resource = preload("res://resources/enemies/shanxiao_elite.tres")
 const MIN_STAGE_DURATION: float = 1.0
 const MIN_SPAWN_DISTANCE: float = 80.0
 const ELITE_AFFIX_IRON_BONES: String = "iron_bones"
 const ELITE_AFFIX_SWIFT: String = "swift"
+const WAVE_TWO_START_TIME: float = 60.0
+const WAVE_THREE_START_TIME: float = 120.0
+const WAVE_FOUR_START_TIME: float = 180.0
+const WAVE_BOSS_WARNING_START_TIME: float = 270.0
 
 @export var player_path: NodePath = ^"../Player"
 @export var enemy_spawner_path: NodePath = ^"../EnemySpawner"
@@ -58,8 +67,7 @@ var _is_second_elite_spawned: bool = false
 var _is_stage_cleared: bool = false
 var _is_stage_failed: bool = false
 var _is_demon_seal_pressure_active: bool = false
-var _demon_seal_pressure_base_spawn_interval: float = 0.0
-var _demon_seal_pressure_base_max_enemies: int = 0
+var _current_wave_config_index: int = -1
 var _rng := RandomNumberGenerator.new()
 var _player: Player
 var _enemy_spawner: EnemySpawner
@@ -91,6 +99,7 @@ func _ready() -> void:
 	_enemy_spawner = get_node_or_null(enemy_spawner_path) as EnemySpawner
 	if _player != null and not _player.died.is_connected(_on_player_died):
 		_player.died.connect(_on_player_died)
+	_apply_current_wave_config(true)
 
 	stage_time_changed.emit(elapsed_time, stage_duration)
 
@@ -101,6 +110,7 @@ func _process(delta: float) -> void:
 
 	elapsed_time = minf(elapsed_time + delta, stage_duration)
 	stage_time_changed.emit(elapsed_time, stage_duration)
+	_apply_current_wave_config()
 
 	if not _is_boss_warning_started and elapsed_time >= stage_duration - boss_warning_lead_time:
 		_is_boss_warning_started = true
@@ -209,25 +219,120 @@ func _apply_boss_phase_spawn_pressure() -> void:
 		_enemy_spawner.max_enemies = mini(_enemy_spawner.max_enemies, boss_phase_max_enemies)
 
 
+func _apply_current_wave_config(force_apply: bool = false) -> void:
+	if _enemy_spawner == null or _is_boss_spawned:
+		return
+
+	var wave_config_index := _get_wave_config_index()
+	if not force_apply and wave_config_index == _current_wave_config_index:
+		return
+
+	_current_wave_config_index = wave_config_index
+	var wave_spawn_interval := _get_wave_spawn_interval(wave_config_index)
+	var wave_max_enemies := _get_wave_max_enemies(wave_config_index)
+	if _is_demon_seal_pressure_active:
+		wave_spawn_interval = maxf(wave_spawn_interval * demon_seal_pressure_interval_multiplier, 0.1)
+		wave_max_enemies += demon_seal_pressure_max_enemy_bonus
+
+	_enemy_spawner.apply_wave_config(
+		wave_spawn_interval,
+		wave_max_enemies,
+		_get_wave_archetype_pool(wave_config_index),
+		_get_wave_archetype_weights(wave_config_index)
+	)
+
+
+func _get_wave_config_index() -> int:
+	if elapsed_time >= WAVE_BOSS_WARNING_START_TIME:
+		return 4
+	if elapsed_time >= WAVE_FOUR_START_TIME:
+		return 3
+	if elapsed_time >= WAVE_THREE_START_TIME:
+		return 2
+	if elapsed_time >= WAVE_TWO_START_TIME:
+		return 1
+
+	return 0
+
+
+func _get_wave_spawn_interval(wave_config_index: int) -> float:
+	match wave_config_index:
+		0:
+			return 1.35
+		1:
+			return 1.08
+		2:
+			return 0.90
+		3:
+			return 0.72
+		_:
+			return 0.55
+
+
+func _get_wave_max_enemies(wave_config_index: int) -> int:
+	match wave_config_index:
+		0:
+			return 18
+		1:
+			return 24
+		2:
+			return 32
+		3:
+			return 42
+		_:
+			return 56
+
+
+func _get_wave_archetype_pool(wave_config_index: int) -> Array[Resource]:
+	match wave_config_index:
+		0:
+			return [
+				PAPER_DOLL_ARCHETYPE,
+				WANDERING_SOUL_ARCHETYPE,
+			]
+		1:
+			return [
+				PAPER_DOLL_ARCHETYPE,
+				WANDERING_SOUL_ARCHETYPE,
+				FOX_SPIRIT_ARCHETYPE,
+				GHOST_FLAME_ARCHETYPE,
+			]
+		_:
+			return [
+				PAPER_DOLL_ARCHETYPE,
+				WANDERING_SOUL_ARCHETYPE,
+				FOX_SPIRIT_ARCHETYPE,
+				GHOST_FLAME_ARCHETYPE,
+				STONE_GOLEM_ARCHETYPE,
+			]
+
+
+func _get_wave_archetype_weights(wave_config_index: int) -> Array[float]:
+	match wave_config_index:
+		0:
+			return [4.0, 3.0]
+		1:
+			return [3.6, 3.0, 0.8, 0.6]
+		2:
+			return [2.8, 2.8, 1.2, 1.0, 0.35]
+		3:
+			return [2.5, 2.4, 1.8, 1.4, 0.7]
+		_:
+			return [2.0, 2.0, 2.3, 1.9, 1.0]
+
+
 func _set_demon_seal_pressure_active(is_active: bool) -> void:
 	if _enemy_spawner == null:
 		return
 	if is_active == _is_demon_seal_pressure_active:
 		return
 
-	if is_active:
-		_is_demon_seal_pressure_active = true
-		_demon_seal_pressure_base_spawn_interval = _enemy_spawner.spawn_interval
-		_demon_seal_pressure_base_max_enemies = _enemy_spawner.max_enemies
-		_enemy_spawner.spawn_interval = maxf(_enemy_spawner.spawn_interval * demon_seal_pressure_interval_multiplier, 0.1)
-		_enemy_spawner.max_enemies = _enemy_spawner.max_enemies + demon_seal_pressure_max_enemy_bonus
-		return
-
-	_is_demon_seal_pressure_active = false
-	_enemy_spawner.spawn_interval = _demon_seal_pressure_base_spawn_interval
-	_enemy_spawner.max_enemies = _demon_seal_pressure_base_max_enemies
+	_is_demon_seal_pressure_active = is_active
 	if _is_boss_spawned:
 		_apply_boss_phase_spawn_pressure()
+		return
+
+	_apply_current_wave_config(true)
 
 
 func _get_spawn_parent() -> Node:
