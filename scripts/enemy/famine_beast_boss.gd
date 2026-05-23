@@ -285,10 +285,10 @@ func _summon_minions() -> void:
 	var spawn_count := mini(summon_batch_count, available_slots)
 	var base_count := _summoned_enemies.size()
 	for index in spawn_count:
-		var archetype := PAPER_DOLL_ARCHETYPE
+		var minion_archetype := PAPER_DOLL_ARCHETYPE
 		if (base_count + index) % 2 == 1:
-			archetype = WANDERING_SOUL_ARCHETYPE
-		_spawn_minion(archetype, index, spawn_count)
+			minion_archetype = WANDERING_SOUL_ARCHETYPE
+		_spawn_minion(minion_archetype, index, spawn_count)
 
 
 func _spawn_minion(enemy_archetype: Resource, index: int, spawn_count: int) -> void:

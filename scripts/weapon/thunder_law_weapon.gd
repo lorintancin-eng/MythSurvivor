@@ -36,8 +36,8 @@ func _try_attack() -> bool:
 
 
 func _find_nearest_targets() -> Array[Node2D]:
-	var attack_range := _get_attack_range()
-	var max_distance_squared := attack_range * attack_range
+	var attack_range_val := _get_attack_range()
+	var max_distance_squared := attack_range_val * attack_range_val
 	var max_targets := _get_target_count()
 	var targets: Array[Node2D] = []
 	var distances_squared: Array[float] = []
