@@ -77,9 +77,13 @@ var _level_up_panel: LevelUpPanel
 @onready var _bagua_array_weapon = $BaguaArrayWeapon
 @onready var _explosive_talisman_weapon = $ExplosiveTalismanWeapon
 @onready var _mountain_seal_weapon = $MountainSealWeapon
+@onready var _character_base: CharacterBase = $CharacterBase
 
 
 func _ready() -> void:
+	if _character_base != null:
+		max_hp = _character_base.max_health
+		move_speed = _character_base.move_speed
 	_ensure_input_actions()
 	_set_weapon_unlocked(_flying_sword_weapon, _is_flying_sword_unlocked)
 	_set_weapon_unlocked(_thunder_law_weapon, _is_thunder_law_unlocked)

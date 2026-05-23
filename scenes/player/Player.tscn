@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player_script"]
 [ext_resource type="Script" path="res://scripts/weapon/talisman_weapon.gd" id="2_talisman_weapon_script"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/weapon/bagua_array_weapon.gd" id="5_bagua_array_weapon_script"]
 [ext_resource type="Script" path="res://scripts/weapon/explosive_talisman_weapon.gd" id="6_explosive_talisman_weapon_script"]
 [ext_resource type="Script" path="res://scripts/weapon/mountain_seal_weapon.gd" id="7_mountain_seal_weapon_script"]
+[ext_resource type="Script" path="res://scripts/character/character_base.gd" id="8_character_base_script"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player_body"]
 radius = 12.0
@@ -84,3 +85,10 @@ radius = 130.0
 [node name="Camera2D" type="Camera2D" parent="."]
 enabled = true
 zoom = Vector2(1.15, 1.15)
+
+[node name="CharacterBase" type="Node" parent="."]
+script = ExtResource("8_character_base_script")
+character_id = "cultivator"
+display_name = "修行者"
+max_health = 100.0
+move_speed = 180.0
