@@ -478,6 +478,19 @@ func _get_upgrade_pool() -> Array[Dictionary]:
 			"description": "凝出重印镇落，压制大片妖物。"
 		})
 
+	if _character_base != null:
+		var allowed: Array[String] = _character_base._get_allowed_upgrade_ids()
+		if not allowed.is_empty():
+			var common_ids: Array[String] = [
+				UPGRADE_MAX_HP, UPGRADE_MOVE_SPEED, UPGRADE_PICKUP_RADIUS, UPGRADE_XP_GAIN
+			]
+			var filtered: Array[Dictionary] = []
+			for item in pool:
+				var item_id: String = item.get("id", "")
+				if item_id in common_ids or item_id in allowed:
+					filtered.append(item)
+			pool = filtered
+
 	return pool
 
 
