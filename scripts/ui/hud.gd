@@ -333,6 +333,10 @@ func _setup_skill_panel() -> void:
 	# 4 个 slot 初始化为未解锁灰显状态
 	for slot in range(4):
 		update_skill_cooldown(slot, 0.0, 0.0, false)
+	# 如果 character_base 是 ActiveSkillCharacter，订阅 cooldown signal
+	if character_base.has_signal("skill_cooldown_changed"):
+		if not character_base.skill_cooldown_changed.is_connected(_on_skill_cooldown_changed):
+			character_base.skill_cooldown_changed.connect(_on_skill_cooldown_changed)
 
 
 # 公开接口：W204 起 ActiveSkillCharacter 子类调用此方法更新 4 个技能槽显示
@@ -377,3 +381,7 @@ func _get_skill_label(slot: int) -> Label:
 		2: return _skill_label_3
 		3: return _skill_label_4
 	return null
+
+
+func _on_skill_cooldown_changed(slot: int, remaining: float, max_cd: float, unlocked: bool) -> void:
+	update_skill_cooldown(slot, remaining, max_cd, unlocked)
