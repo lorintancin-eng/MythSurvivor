@@ -74,13 +74,13 @@ var _speed_multiplier: float = 1.0
 var _damage_multiplier: float = 1.0
 
 @onready var _health_fill: Polygon2D = $HealthBar/Fill
-@onready var _talisman_weapon: TalismanWeapon = $TalismanWeapon
-@onready var _flying_sword_weapon: FlyingSwordWeapon = $FlyingSwordWeapon
-@onready var _thunder_law_weapon: ThunderLawWeapon = $ThunderLawWeapon
-@onready var _bagua_array_weapon = $BaguaArrayWeapon
-@onready var _explosive_talisman_weapon = $ExplosiveTalismanWeapon
-@onready var _mountain_seal_weapon = $MountainSealWeapon
-@onready var _character_base: CharacterBase = $CharacterBase
+@onready var _talisman_weapon: TalismanWeapon = get_node_or_null("TalismanWeapon")
+@onready var _flying_sword_weapon: FlyingSwordWeapon = get_node_or_null("FlyingSwordWeapon")
+@onready var _thunder_law_weapon: ThunderLawWeapon = get_node_or_null("ThunderLawWeapon")
+@onready var _bagua_array_weapon = get_node_or_null("BaguaArrayWeapon")
+@onready var _explosive_talisman_weapon = get_node_or_null("ExplosiveTalismanWeapon")
+@onready var _mountain_seal_weapon = get_node_or_null("MountainSealWeapon")
+@onready var _character_base: CharacterBase = get_node_or_null("CharacterBase")
 
 
 func _ready() -> void:
@@ -478,11 +478,44 @@ func _get_upgrade_pool() -> Array[Dictionary]:
 			"description": "凝出重印镇落，压制大片妖物。"
 		})
 
+	# 修复 FU-03：孙悟空武器强化升级朡（v0.3）
+	pool.append({
+		"id": "wukong_jingu_bang_damage",
+		"title": "金箍棒沉重",
+		"description": "如意金箍棒伤害 +5。"
+	})
+	pool.append({
+		"id": "wukong_jingu_bang_radius",
+		"title": "金箍棒延展",
+		"description": "如意金箍棒范围 +15。"
+	})
+	pool.append({
+		"id": "wukong_jingu_bang_extend_damage",
+		"title": "变长棒锋",
+		"description": "金箍棒·变长伤害 +15。"
+	})
+	pool.append({
+		"id": "wukong_jingu_bang_extend_cooldown",
+		"title": "收发自如",
+		"description": "金箍棒·变长冷却 -0.8s。"
+	})
+	pool.append({
+		"id": "wukong_hair_clone_damage",
+		"title": "毫毛狂暴",
+		"description": "毫毛分身爆炸伤害 +10。"
+	})
+	pool.append({
+		"id": "wukong_hair_clone_count",
+		"title": "毫毛繁盛",
+		"description": "毫毛分身数量 +1。"
+	})
+
 	if _character_base != null:
 		var allowed: Array[String] = _character_base._get_allowed_upgrade_ids()
 		if not allowed.is_empty():
+			# 修复 BUG-T207-02：用字面 String 而非 StringName 常量，避免 Array[String] 类型不匹配
 			var common_ids: Array[String] = [
-				UPGRADE_MAX_HP, UPGRADE_MOVE_SPEED, UPGRADE_PICKUP_RADIUS, UPGRADE_XP_GAIN
+				"max_hp", "move_speed", "pickup_radius", "xp_gain"
 			]
 			var filtered: Array[Dictionary] = []
 			for item in pool:
@@ -603,6 +636,31 @@ func _apply_upgrade(upgrade_id: StringName) -> void:
 			pickup_radius_bonus += 18.0
 		UPGRADE_XP_GAIN:
 			xp_gain_multiplier *= 1.1
+		# 修复 FU-03：孙悟空武器强化（节点不存在时 null guard 保护）
+		"wukong_jingu_bang_damage":
+			var _jb_dmg := get_node_or_null("JinguBangWeapon")
+			if _jb_dmg != null:
+				_jb_dmg.damage += 5.0
+		"wukong_jingu_bang_radius":
+			var _jb_rad := get_node_or_null("JinguBangWeapon")
+			if _jb_rad != null:
+				_jb_rad.radius += 15.0
+		"wukong_jingu_bang_extend_damage":
+			var _jbe_dmg := get_node_or_null("JinguBangExtendWeapon")
+			if _jbe_dmg != null:
+				_jbe_dmg.damage += 15.0
+		"wukong_jingu_bang_extend_cooldown":
+			var _jbe_cd := get_node_or_null("JinguBangExtendWeapon")
+			if _jbe_cd != null:
+				_jbe_cd.cooldown = maxf(_jbe_cd.cooldown - 0.8, WeaponBase.MIN_COOLDOWN)
+		"wukong_hair_clone_damage":
+			var _hc_dmg := get_node_or_null("HairCloneWeapon")
+			if _hc_dmg != null:
+				_hc_dmg.damage += 10.0
+		"wukong_hair_clone_count":
+			var _hc_cnt := get_node_or_null("HairCloneWeapon")
+			if _hc_cnt != null:
+				_hc_cnt.projectile_count += 1
 		_:
 			push_warning("Unknown upgrade selected: %s" % String(upgrade_id))
 			return

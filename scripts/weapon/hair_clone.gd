@@ -9,8 +9,6 @@ extends Area2D
 ##
 ## 详细设计：docs/04_SKILL_DESIGN.md §5.2 W103
 
-signal hair_exploded(position: Vector2)
-
 @export var move_speed: float = 200.0
 @export var lifetime: float = 6.0
 @export var explosion_radius: float = 70.0
@@ -46,8 +44,8 @@ func _physics_process(delta: float) -> void:
 		return
 	_alive_time += delta
 	if _alive_time >= lifetime:
-		# 寿命到，安静消失
-		queue_free()
+		# 寿命到，淡出消失（与爆炸视觉一致）
+		_fade_and_free()
 		return
 	# 直线移动
 	global_position += direction * move_speed * delta
@@ -56,14 +54,18 @@ func _physics_process(delta: float) -> void:
 
 
 func _check_contact() -> void:
-	var contact_squared: float = contact_radius * contact_radius
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
 			continue
 		if not enemy is Node2D:
 			continue
 		var enemy_node := enemy as Node2D
-		if global_position.distance_squared_to(enemy_node.global_position) <= contact_squared:
+		# 取敌人 collision_radius（如果有），默认 8
+		var enemy_radius: float = 8.0
+		if "collision_radius" in enemy_node:
+			enemy_radius = enemy_node.collision_radius
+		var total_radius: float = contact_radius + enemy_radius
+		if global_position.distance_squared_to(enemy_node.global_position) <= total_radius * total_radius:
 			_explode()
 			return
 
@@ -81,7 +83,6 @@ func _explode() -> void:
 	if _has_exploded:
 		return
 	_has_exploded = true
-	hair_exploded.emit(global_position)
 	# 范围伤害（distance_squared 避免开方，性能更好）
 	var explosion_radius_squared := explosion_radius * explosion_radius
 	for enemy in get_tree().get_nodes_in_group("enemies"):
@@ -95,7 +96,12 @@ func _explode() -> void:
 			continue
 		if enemy_node.has_method("take_damage"):
 			enemy_node.call("take_damage", explosion_damage)
-	# 视觉：简单淡出
+	# 视觉：淡出消失
+	_fade_and_free()
+
+
+func _fade_and_free() -> void:
+	_has_exploded = true  # 防重入（寿命到期与 _explode 同帧时）
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, 0.15)
 	tween.tween_callback(queue_free)

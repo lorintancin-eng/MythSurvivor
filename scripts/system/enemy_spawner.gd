@@ -52,7 +52,7 @@ func _try_spawn_enemy() -> void:
 
 	var player := get_tree().get_first_node_in_group("player") as Node2D
 	if player == null:
-		push_warning("EnemySpawner could not find a node in the player group.")
+		# 选角前 player 不存在，静默跳过本次 spawn
 		return
 
 	var enemy := _create_enemy(_select_archetype())

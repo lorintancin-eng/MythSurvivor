@@ -24,6 +24,8 @@ var _player: Player
 var _enemy_spawner: EnemySpawner
 var _game_over_panel: GameOverPanel
 var _stage_director: Node
+# Bug C fix: cache character_base to avoid per-frame reflection in _update_energy_bar
+var _cached_character_base: Node = null
 
 @onready var _health_label: Label = $Panel/Margin/Content/HealthLabel
 @onready var _level_label: Label = $Panel/Margin/Content/LevelLabel
@@ -249,6 +251,13 @@ func _on_player_died() -> void:
 
 
 func _setup_energy_bar() -> void:
+	# Bug B fix: disconnect from previous character_base before switching
+	if _cached_character_base != null and is_instance_valid(_cached_character_base):
+		if _cached_character_base.has_signal("energy_full_triggered"):
+			if _cached_character_base.energy_full_triggered.is_connected(_on_energy_full):
+				_cached_character_base.energy_full_triggered.disconnect(_on_energy_full)
+	_cached_character_base = null
+
 	if _player == null:
 		_energy_panel.visible = false
 		return
@@ -260,9 +269,12 @@ func _setup_energy_bar() -> void:
 	if config == null or config.is_empty():
 		_energy_panel.visible = false
 		return
+	# Bug C fix: store reference so _update_energy_bar skips per-frame reflection
+	_cached_character_base = character_base
 	_energy_bar.max_value = config.get("max_value", 30.0)
 	_energy_bar.value = 0.0
 	_energy_label.text = config.get("label", "能量")
+	# Bug A fix: explicitly restore visibility when config is valid (handles character switch)
 	_energy_panel.visible = true
 	if character_base.has_signal("energy_full_triggered"):
 		if not character_base.energy_full_triggered.is_connected(_on_energy_full):
@@ -272,12 +284,10 @@ func _setup_energy_bar() -> void:
 func _update_energy_bar() -> void:
 	if not _energy_panel.visible:
 		return
-	if _player == null:
+	# Bug C fix: use cached reference instead of per-frame get() reflection
+	if _cached_character_base == null:
 		return
-	var character_base = _player.get("_character_base")
-	if character_base == null:
-		return
-	var current = character_base.get("current_lingqi")
+	var current = _cached_character_base.get("current_lingqi")
 	if current == null:
 		return
 	_energy_bar.value = current
@@ -289,4 +299,9 @@ func _update_energy_bar() -> void:
 
 
 func _on_energy_full() -> void:
-	pass
+	# Bug D fix: brief scale pulse to signal energy full state visually
+	if _energy_bar == null:
+		return
+	var tween := create_tween()
+	tween.tween_property(_energy_bar, "scale", Vector2(1.2, 1.2), 0.1)
+	tween.tween_property(_energy_bar, "scale", Vector2(1.0, 1.0), 0.2)

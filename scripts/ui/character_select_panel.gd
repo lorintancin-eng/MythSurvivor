@@ -38,4 +38,11 @@ func _select_character(scene: PackedScene) -> void:
 				hud.call("_refresh_initial_state")
 			if hud.has_method("_setup_energy_bar"):
 				hud.call("_setup_energy_bar")
+		# 重绑 StageDirector（修复 Bug 1+5）
+		var stage_director := main.get_node_or_null("StageDirector")
+		if stage_director != null:
+			stage_director.set("_player", character)
+			if character.has_signal("died") and stage_director.has_method("_on_player_died"):
+				if not character.died.is_connected(stage_director._on_player_died):
+					character.died.connect(stage_director._on_player_died)
 	queue_free()

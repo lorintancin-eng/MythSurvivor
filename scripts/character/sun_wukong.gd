@@ -83,12 +83,15 @@ func _on_energy_full() -> void:
 
 
 ## 孙悟空专属升级池 ID 列表（供 T207 升级池过滤使用）。
-## TODO T204-T206 实施后，可能需要补武器强化项 ID（如 "wukong_jingu_bang_damage"）。
+## 修复 BUG-T207-01：返回真实强化 ID 以匹配 player.gd 升级池条目。
 func _get_allowed_upgrade_ids() -> Array[String]:
 	return [
-		"wukong_jingu_bang",
-		"wukong_jingu_bang_extend",
-		"wukong_hair_clone",
+		"wukong_jingu_bang_damage",
+		"wukong_jingu_bang_radius",
+		"wukong_jingu_bang_extend_damage",
+		"wukong_jingu_bang_extend_cooldown",
+		"wukong_hair_clone_damage",
+		"wukong_hair_clone_count",
 	]
 
 
