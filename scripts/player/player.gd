@@ -60,6 +60,7 @@ var level: int = 1
 
 var _is_dead: bool = false
 var _pending_upgrade_choices: int = 0
+var _pending_skill_choices: int = 0  # W211: 主动技能选择面板待处理数（孙悟空 Lv5/10/15/20）
 var _is_selecting_upgrade: bool = false
 var _was_tree_paused_before_level_up: bool = false
 var _is_flying_sword_unlocked: bool = false
@@ -152,6 +153,13 @@ func gain_experience(amount: float) -> void:
 	experience_changed.emit(current_xp, xp_to_next_level, level)
 
 	if levels_gained > 0:
+		# W211: 孙悟空（ActiveSkillCharacter）每升 5/10/15/20 级额外解锁一次主动技能选择
+		if _character_base is ActiveSkillCharacter:
+			# 防御性 clamp：理论上 level >= levels_gained，但避免负数导致 range 异常
+			var start_level := maxi(level - levels_gained, 0)
+			for new_lv in range(start_level + 1, level + 1):
+				if new_lv % 5 == 0 and new_lv <= 20:
+					_pending_skill_choices += 1
 		_queue_upgrade_choices(levels_gained)
 
 
@@ -270,20 +278,43 @@ func _queue_upgrade_choices(levels_gained: int) -> void:
 
 
 func _show_next_upgrade_choice() -> void:
-	if _pending_upgrade_choices <= 0:
-		get_tree().paused = _was_tree_paused_before_level_up
+	# 常规升级优先（保持 v0.2 行为）
+	if _pending_upgrade_choices > 0:
+		_pending_upgrade_choices -= 1
+		_is_selecting_upgrade = true
+		_ensure_level_up_panel()
+		if not is_instance_valid(_level_up_panel):
+			_is_selecting_upgrade = false
+			get_tree().paused = _was_tree_paused_before_level_up
+			return
+		_level_up_panel.show_choices(_get_random_upgrade_options())
+		get_tree().paused = true
 		return
 
-	_pending_upgrade_choices -= 1
-	_is_selecting_upgrade = true
-	_ensure_level_up_panel()
-	if not is_instance_valid(_level_up_panel):
-		_is_selecting_upgrade = false
-		get_tree().paused = _was_tree_paused_before_level_up
+	# W211: 常规升级处理完后，处理主动技能选择队列（孙悟空 Lv5/10/15/20）
+	while _pending_skill_choices > 0:
+		if not (_character_base is ActiveSkillCharacter):
+			_pending_skill_choices = 0
+			break
+		# 与 _pending_upgrade_choices 处理顺序保持一致：先 -= 1 再处理
+		_pending_skill_choices -= 1
+		var skill_char := _character_base as ActiveSkillCharacter
+		var skill_choices := skill_char.get_skill_choices()
+		if skill_choices.is_empty():
+			# 4 槽均已 Lv4 满级或未注册，跳过本次（cap 场景）
+			continue
+		_is_selecting_upgrade = true
+		_ensure_level_up_panel()
+		if not is_instance_valid(_level_up_panel):
+			_is_selecting_upgrade = false
+			get_tree().paused = _was_tree_paused_before_level_up
+			return
+		_level_up_panel.show_choices(skill_choices)
+		get_tree().paused = true
 		return
 
-	_level_up_panel.show_choices(_get_random_upgrade_options())
-	get_tree().paused = true
+	# 全部队列处理完
+	get_tree().paused = _was_tree_paused_before_level_up
 
 
 func _ensure_level_up_panel() -> void:
@@ -533,13 +564,24 @@ func _on_upgrade_selected(upgrade_id: StringName) -> void:
 		_level_up_panel.hide_panel()
 
 	_is_selecting_upgrade = false
-	if _pending_upgrade_choices > 0:
+	# W211: 同时考虑常规升级 + 主动技能选择两个队列
+	if _pending_upgrade_choices > 0 or _pending_skill_choices > 0:
 		_show_next_upgrade_choice()
 	else:
 		get_tree().paused = _was_tree_paused_before_level_up
 
 
 func _apply_upgrade(upgrade_id: StringName) -> void:
+	# W211: 主动技能升级（wukong_skill_*）转发到 ActiveSkillCharacter
+	var id_str := String(upgrade_id)
+	if id_str.begins_with("wukong_skill_"):
+		if _character_base is ActiveSkillCharacter:
+			(_character_base as ActiveSkillCharacter).apply_skill_upgrade(id_str)
+			upgrade_applied.emit(upgrade_id)
+		else:
+			push_warning("Skill upgrade %s but no ActiveSkillCharacter attached" % id_str)
+		return
+
 	match upgrade_id:
 		UPGRADE_TALISMAN_DAMAGE:
 			if _talisman_weapon != null:
