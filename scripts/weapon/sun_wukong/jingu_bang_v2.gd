@@ -98,6 +98,21 @@ func _get_facing() -> Vector2:
 	return Vector2.RIGHT
 
 
+# 查询火眼金睛伤害修正（W206）
+# owner 是 Player 节点，通过 _character_base 找到 ActiveSkillCharacter 实例
+func _get_fire_eyes_modifier(target: Node) -> float:
+	if owner == null:
+		return 1.0
+	if not "_character_base" in owner:
+		return 1.0
+	var cb = owner._character_base
+	if cb == null:
+		return 1.0
+	if not cb.has_method("get_damage_modifier"):
+		return 1.0
+	return cb.get_damage_modifier(target)
+
+
 func _check_fan_hits() -> void:
 	var facing := _get_facing()
 	var half_arc_cos := cos(deg_to_rad(_arc_deg * 0.5))
@@ -118,7 +133,7 @@ func _check_fan_hits() -> void:
 			continue
 		# 命中
 		if enemy_node.has_method("take_damage"):
-			enemy_node.take_damage(_get_damage())
+			enemy_node.take_damage(_get_damage() * _get_fire_eyes_modifier(enemy_node))
 		_hit_cooldowns[enemy_node] = rehit_cooldown
 
 
@@ -149,7 +164,7 @@ func _trigger_smash() -> void:
 			continue
 		# 伤害
 		if enemy_node.has_method("take_damage"):
-			enemy_node.take_damage(_smash_damage)
+			enemy_node.take_damage(_smash_damage * _get_fire_eyes_modifier(enemy_node))
 		# 击退（直接位移）
 		if to_enemy.length() > 0.001:
 			enemy_node.global_position += to_enemy.normalized() * _smash_knockback
@@ -194,7 +209,7 @@ func _spawn_fissure() -> void:
 				if e.global_position.distance_squared_to(fissure.global_position) > fr_sq:
 					continue
 				if e.has_method("take_damage"):
-					e.take_damage(fissure_damage)
+					e.take_damage(fissure_damage * _get_fire_eyes_modifier(e))
 		)
 	# 2s 后销毁
 	get_tree().create_timer(duration).timeout.connect(fissure.queue_free)

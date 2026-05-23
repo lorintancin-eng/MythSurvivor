@@ -95,3 +95,9 @@ func is_skill_unlocked(slot: int) -> bool:
 	if slot < 0 or slot > 3:
 		return false
 	return _skill_unlocked[slot]
+
+
+# 火眼金睛接口：返回对该 target 的伤害倍率（W206 预留）
+# 默认返回 1.0（无加成）；SunWukong v2 子类 override 实现"对精英/Boss +20%"
+func get_damage_modifier(_target: Node) -> float:
+	return 1.0
