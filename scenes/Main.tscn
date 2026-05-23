@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/CharacterSelectPanel.tscn" id="1_character_select_panel_scene"]
 [ext_resource type="PackedScene" path="res://scenes/system/EnemySpawner.tscn" id="2_enemy_spawner_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="3_hud_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/GameOverPanel.tscn" id="4_game_over_panel_scene"]
@@ -40,7 +40,7 @@ position = Vector2(-160, 0)
 color = Color(0.74, 0.56, 0.32, 1)
 polygon = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 
-[node name="Player" parent="." instance=ExtResource("1_player_scene")]
+[node name="CharacterSelectPanel" parent="." instance=ExtResource("1_character_select_panel_scene")]
 
 [node name="EnemySpawner" parent="." instance=ExtResource("2_enemy_spawner_scene")]
 
