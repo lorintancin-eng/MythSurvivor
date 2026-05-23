@@ -1,12 +1,14 @@
-class_name FlyingSwordWeapon
+class_name ExplosiveTalismanWeapon
 extends WeaponBase
 
-const DEFAULT_PROJECTILE_SCENE: PackedScene = preload("res://scenes/weapon/FlyingSwordProjectile.tscn")
+const DEFAULT_PROJECTILE_SCENE: PackedScene = preload("res://scenes/weapon/ExplosiveTalismanProjectile.tscn")
+const MIN_EXPLOSION_RADIUS: float = 1.0
 
-@export var pierce_count: int = 3
 @export var projectile_scene: PackedScene = DEFAULT_PROJECTILE_SCENE
 @export var projectile_count: int = 1
 @export var projectile_spread_degrees: float = 10.0
+@export var explosion_radius: float = 58.0
+@export var explosion_damage: float = 14.0
 
 
 func _try_attack() -> bool:
@@ -59,31 +61,30 @@ func _fire_projectiles(target: Node2D) -> bool:
 
 func _fire_projectile(direction: Vector2) -> bool:
 	if projectile_scene == null:
-		push_warning("FlyingSwordWeapon has no projectile scene.")
+		push_warning("ExplosiveTalismanWeapon has no projectile scene.")
 		return false
 
 	var projectile_instance := projectile_scene.instantiate()
 	if not projectile_instance is Node2D:
-		push_error("FlyingSwordWeapon projectile_scene must instantiate a Node2D projectile.")
+		push_error("ExplosiveTalismanWeapon projectile_scene must instantiate a Node2D projectile.")
 		projectile_instance.queue_free()
 		return false
 	if not projectile_instance.has_method("launch"):
-		push_error("FlyingSwordWeapon projectile_scene must instantiate a projectile with launch().")
+		push_error("ExplosiveTalismanWeapon projectile_scene must instantiate a projectile with launch().")
 		projectile_instance.queue_free()
 		return false
 
 	var projectile := projectile_instance as Node2D
-	var projectile_parent := _get_projectile_parent()
-	projectile_parent.add_child(projectile)
+	_get_projectile_parent().add_child(projectile)
 	projectile.global_position = global_position
-
 	projectile.call(
 		"launch",
 		direction,
 		_get_damage(),
 		_get_projectile_speed(),
 		_get_projectile_lifetime(),
-		_get_pierce_count()
+		_get_explosion_radius(),
+		_get_explosion_damage()
 	)
 	return true
 
@@ -92,8 +93,12 @@ func _get_projectile_count() -> int:
 	return maxi(projectile_count, 1)
 
 
-func _get_pierce_count() -> int:
-	return maxi(pierce_count, 1)
+func _get_explosion_radius() -> float:
+	return maxf(explosion_radius, MIN_EXPLOSION_RADIUS)
+
+
+func _get_explosion_damage() -> float:
+	return maxf(explosion_damage, 0.0)
 
 
 func _get_projectile_parent() -> Node:

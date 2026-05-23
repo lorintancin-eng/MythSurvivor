@@ -6,6 +6,7 @@ signal restart_requested
 @onready var _time_label: Label = $Overlay/Center/Panel/Margin/Content/TimeLabel
 @onready var _kill_label: Label = $Overlay/Center/Panel/Margin/Content/KillLabel
 @onready var _level_label: Label = $Overlay/Center/Panel/Margin/Content/LevelLabel
+@onready var _title_label: Label = $Overlay/Center/Panel/Margin/Content/TitleLabel
 @onready var _restart_button: Button = $Overlay/Center/Panel/Margin/Content/RestartButton
 
 
@@ -16,9 +17,19 @@ func _ready() -> void:
 
 
 func show_summary(survival_time: float, kill_count: int, final_level: int) -> void:
-	_time_label.text = "存活时间 %s" % _format_time(survival_time)
-	_kill_label.text = "镇伏数量 %d" % maxi(kill_count, 0)
+	_show_result("道消身陨", "存活时间", survival_time, kill_count, final_level)
+
+
+func show_stage_clear(stage_time: float, kill_count: int, final_level: int) -> void:
+	_show_result("封印完成", "历劫时间", stage_time, kill_count, final_level)
+
+
+func _show_result(title: String, time_label: String, result_time: float, kill_count: int, final_level: int) -> void:
+	_title_label.text = title
+	_time_label.text = "%s %s" % [time_label, _format_time(result_time)]
+	_kill_label.text = "镇妖数 %d" % maxi(kill_count, 0)
 	_level_label.text = "最终境界 %d" % maxi(final_level, 1)
+	_restart_button.text = "再入劫境"
 	visible = true
 	_restart_button.grab_focus()
 

@@ -7,31 +7,57 @@ const MIN_DAMAGE_INTERVAL: float = 0.1
 const HEALTH_BAR_WIDTH: float = 28.0
 const HEALTH_BAR_HEIGHT: float = 4.0
 const DEFAULT_EXPERIENCE_ORB_SCENE: PackedScene = preload("res://scenes/system/ExperienceOrb.tscn")
+const MOVEMENT_CHASE: int = 0
+const MOVEMENT_WAVE_CHASE: int = 1
+const ELITE_AFFIX_IRON_BONES: String = "iron_bones"
+const ELITE_AFFIX_SWIFT: String = "swift"
 
+@export var archetype: Resource
 @export var move_speed: float = 90.0
 @export var max_hp: float = 24.0
 @export var damage: float = 8.0
 @export var damage_interval: float = 0.8
 @export var xp_drop_value: float = 5.0
 @export var experience_orb_scene: PackedScene = DEFAULT_EXPERIENCE_ORB_SCENE
+@export_enum("Chase", "Wave Chase") var movement_mode: int = MOVEMENT_CHASE
+@export var wave_amplitude: float = 0.0
+@export var wave_frequency: float = 0.0
+@export var wave_phase: float = 0.0
+@export var is_elite: bool = false
+@export var elite_affixes: Array[String] = []
+@export var elite_health_multiplier: float = 1.25
+@export var elite_damage_multiplier: float = 1.15
+@export var elite_speed_multiplier: float = 1.05
+@export var iron_bones_health_multiplier: float = 1.45
+@export var swift_speed_multiplier: float = 1.3
 
 var current_hp: float = 0.0
 
 var _damage_cooldown: float = 0.0
 var _damage_targets: Array[Node] = []
 var _is_dead: bool = false
+var _movement_time: float = 0.0
 var _player: Node2D
 
 @onready var _damage_area: Area2D = $DamageArea
+@onready var _body: Polygon2D = $Body
+@onready var _body_collision: CollisionShape2D = $CollisionShape2D
+@onready var _damage_collision: CollisionShape2D = $DamageArea/CollisionShape2D
+@onready var _health_bar: Node2D = $HealthBar
 @onready var _health_fill: Polygon2D = $HealthBar/Fill
 
 
 func _ready() -> void:
 	add_to_group("enemies")
+	if archetype != null:
+		_apply_archetype_values(archetype)
+	if is_elite:
+		_apply_elite_modifiers()
 	max_hp = maxf(max_hp, 1.0)
 	current_hp = max_hp
 	_damage_area.body_entered.connect(_on_damage_body_entered)
 	_damage_area.body_exited.connect(_on_damage_body_exited)
+	_apply_archetype_visuals(archetype)
 	_update_health_bar()
 	_find_player()
 
@@ -51,11 +77,41 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 
-	var move_direction := global_position.direction_to(_player.global_position)
-	velocity = move_direction * move_speed
+	_movement_time += delta
+	velocity = _get_move_direction(_player.global_position) * move_speed
 	move_and_slide()
 
 	_try_damage_player()
+
+
+func apply_archetype(enemy_archetype: Resource) -> void:
+	archetype = enemy_archetype
+	if archetype == null:
+		return
+
+	_apply_archetype_values(archetype)
+	if is_elite:
+		_apply_elite_modifiers()
+	max_hp = maxf(max_hp, 1.0)
+	current_hp = max_hp
+	if is_node_ready():
+		_apply_archetype_visuals(archetype)
+		_update_health_bar()
+
+
+func configure_elite(affixes: Array[String]) -> void:
+	var configured_affixes := affixes.duplicate()
+	if archetype != null:
+		_apply_archetype_values(archetype)
+
+	is_elite = true
+	elite_affixes = configured_affixes
+	_apply_elite_modifiers()
+	max_hp = maxf(max_hp, 1.0)
+	current_hp = max_hp
+	if is_node_ready():
+		_apply_archetype_visuals(archetype)
+		_update_health_bar()
 
 
 func take_damage(amount: float) -> void:
@@ -70,6 +126,65 @@ func take_damage(amount: float) -> void:
 
 func _find_player() -> void:
 	_player = get_tree().get_first_node_in_group("player") as Node2D
+
+
+func _get_move_direction(target_position: Vector2) -> Vector2:
+	var move_direction := global_position.direction_to(target_position)
+	if movement_mode != MOVEMENT_WAVE_CHASE or move_direction == Vector2.ZERO:
+		return move_direction
+
+	var wave_offset := move_direction.orthogonal() * sin(_movement_time * wave_frequency * TAU + wave_phase) * wave_amplitude
+	return (move_direction + wave_offset).normalized()
+
+
+func _apply_archetype_values(enemy_archetype: Resource) -> void:
+	move_speed = enemy_archetype.move_speed
+	max_hp = enemy_archetype.max_hp
+	damage = enemy_archetype.damage
+	damage_interval = enemy_archetype.damage_interval
+	xp_drop_value = enemy_archetype.xp_drop_value
+	movement_mode = enemy_archetype.movement_mode
+	wave_amplitude = enemy_archetype.wave_amplitude
+	wave_frequency = enemy_archetype.wave_frequency
+	wave_phase = enemy_archetype.wave_phase
+	is_elite = enemy_archetype.is_elite
+	elite_affixes = enemy_archetype.elite_affixes.duplicate()
+	elite_health_multiplier = enemy_archetype.elite_health_multiplier
+	elite_damage_multiplier = enemy_archetype.elite_damage_multiplier
+	elite_speed_multiplier = enemy_archetype.elite_speed_multiplier
+	iron_bones_health_multiplier = enemy_archetype.iron_bones_health_multiplier
+	swift_speed_multiplier = enemy_archetype.swift_speed_multiplier
+
+
+func _apply_elite_modifiers() -> void:
+	max_hp *= maxf(elite_health_multiplier, 0.1)
+	damage *= maxf(elite_damage_multiplier, 0.0)
+	move_speed *= maxf(elite_speed_multiplier, 0.1)
+
+	for affix in elite_affixes:
+		match affix:
+			ELITE_AFFIX_IRON_BONES:
+				max_hp *= maxf(iron_bones_health_multiplier, 0.1)
+			ELITE_AFFIX_SWIFT:
+				move_speed *= maxf(swift_speed_multiplier, 0.1)
+
+
+func _apply_archetype_visuals(enemy_archetype: Resource) -> void:
+	if enemy_archetype == null:
+		return
+
+	_body.color = enemy_archetype.body_color
+	_body.scale = Vector2.ONE * maxf(enemy_archetype.body_scale, 0.1)
+	_health_bar.position.y = enemy_archetype.health_bar_y
+	_set_circle_shape_radius(_body_collision, enemy_archetype.collision_radius)
+	_set_circle_shape_radius(_damage_collision, enemy_archetype.damage_radius)
+
+
+func _set_circle_shape_radius(collision_shape: CollisionShape2D, radius: float) -> void:
+	if collision_shape.shape is CircleShape2D:
+		var circle_shape := collision_shape.shape.duplicate() as CircleShape2D
+		circle_shape.radius = maxf(radius, 1.0)
+		collision_shape.shape = circle_shape
 
 
 func _try_damage_player() -> void:

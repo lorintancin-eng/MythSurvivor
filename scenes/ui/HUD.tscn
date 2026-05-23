@@ -10,7 +10,7 @@ script = ExtResource("1_hud_script")
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 236.0
-offset_bottom = 146.0
+offset_bottom = 174.0
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
 theme_override_constants/margin_left = 12
@@ -31,7 +31,12 @@ text = "境界 1"
 text = "修为 0 / 0"
 
 [node name="TimeLabel" type="Label" parent="Panel/Margin/Content"]
-text = "存活时间 00:00"
+text = "历劫时间 00:00 / 05:00"
 
 [node name="KillLabel" type="Label" parent="Panel/Margin/Content"]
-text = "镇伏 0"
+text = "镇妖数 0"
+
+[node name="StageStatusLabel" type="Label" parent="Panel/Margin/Content"]
+visible = false
+text = "妖王降临"
+autowrap_mode = 2

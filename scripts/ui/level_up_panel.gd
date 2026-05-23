@@ -30,7 +30,7 @@ func show_choices(options: Array[Dictionary]) -> void:
 			continue
 
 		var option := options[i]
-		var title := String(option.get("title", "Upgrade"))
+		var title := String(option.get("title", "悟道"))
 		var description := String(option.get("description", ""))
 		var upgrade_id := StringName(option.get("id", ""))
 		button.text = "%s\n%s" % [title, description]
