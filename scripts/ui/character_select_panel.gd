@@ -7,12 +7,12 @@ extends CanvasLayer
 ## 选择后实例化对应角色场景，强制 name = "Player" 后 add_child 到 Main，
 ## 调用 HUD._connect_player() 重新绑定 HUD，最后 queue_free 自身。
 
-@export var sun_wukong_scene: PackedScene
 @export var cultivator_scene: PackedScene
 
 
 func _on_sun_wukong_button_pressed() -> void:
-	_select_character(sun_wukong_scene)
+	# v0.3 孙悟空已删除，等待 v0.4 v2 重做
+	push_warning("孙悟空 v0.4 重做中，暂不可用")
 
 
 func _on_cultivator_button_pressed() -> void:

@@ -478,38 +478,6 @@ func _get_upgrade_pool() -> Array[Dictionary]:
 			"description": "凝出重印镇落，压制大片妖物。"
 		})
 
-	# 修复 FU-03：孙悟空武器强化升级朡（v0.3）
-	pool.append({
-		"id": "wukong_jingu_bang_damage",
-		"title": "金箍棒沉重",
-		"description": "如意金箍棒伤害 +5。"
-	})
-	pool.append({
-		"id": "wukong_jingu_bang_radius",
-		"title": "金箍棒延展",
-		"description": "如意金箍棒范围 +15。"
-	})
-	pool.append({
-		"id": "wukong_jingu_bang_extend_damage",
-		"title": "变长棒锋",
-		"description": "金箍棒·变长伤害 +15。"
-	})
-	pool.append({
-		"id": "wukong_jingu_bang_extend_cooldown",
-		"title": "收发自如",
-		"description": "金箍棒·变长冷却 -0.8s。"
-	})
-	pool.append({
-		"id": "wukong_hair_clone_damage",
-		"title": "毫毛狂暴",
-		"description": "毫毛分身爆炸伤害 +10。"
-	})
-	pool.append({
-		"id": "wukong_hair_clone_count",
-		"title": "毫毛繁盛",
-		"description": "毫毛分身数量 +1。"
-	})
-
 	if _character_base != null:
 		var allowed: Array[String] = _character_base._get_allowed_upgrade_ids()
 		if not allowed.is_empty():
@@ -636,31 +604,6 @@ func _apply_upgrade(upgrade_id: StringName) -> void:
 			pickup_radius_bonus += 18.0
 		UPGRADE_XP_GAIN:
 			xp_gain_multiplier *= 1.1
-		# 修复 FU-03：孙悟空武器强化（节点不存在时 null guard 保护）
-		"wukong_jingu_bang_damage":
-			var _jb_dmg := get_node_or_null("JinguBangWeapon")
-			if _jb_dmg != null:
-				_jb_dmg.damage += 5.0
-		"wukong_jingu_bang_radius":
-			var _jb_rad := get_node_or_null("JinguBangWeapon")
-			if _jb_rad != null:
-				_jb_rad.radius += 15.0
-		"wukong_jingu_bang_extend_damage":
-			var _jbe_dmg := get_node_or_null("JinguBangExtendWeapon")
-			if _jbe_dmg != null:
-				_jbe_dmg.damage += 15.0
-		"wukong_jingu_bang_extend_cooldown":
-			var _jbe_cd := get_node_or_null("JinguBangExtendWeapon")
-			if _jbe_cd != null:
-				_jbe_cd.cooldown = maxf(_jbe_cd.cooldown - 0.8, WeaponBase.MIN_COOLDOWN)
-		"wukong_hair_clone_damage":
-			var _hc_dmg := get_node_or_null("HairCloneWeapon")
-			if _hc_dmg != null:
-				_hc_dmg.damage += 10.0
-		"wukong_hair_clone_count":
-			var _hc_cnt := get_node_or_null("HairCloneWeapon")
-			if _hc_cnt != null:
-				_hc_cnt.clone_count += 1
 		_:
 			push_warning("Unknown upgrade selected: %s" % String(upgrade_id))
 			return
