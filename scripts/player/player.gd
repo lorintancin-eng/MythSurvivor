@@ -196,6 +196,10 @@ func _ensure_input_actions() -> void:
 		"move_down": [KEY_S, KEY_DOWN],
 		"move_left": [KEY_A, KEY_LEFT],
 		"move_right": [KEY_D, KEY_RIGHT],
+		"skill_1": [KEY_1],
+		"skill_2": [KEY_2],
+		"skill_3": [KEY_3],
+		"skill_4": [KEY_4],
 	}
 
 	for action_name in action_events.keys():
@@ -221,6 +225,27 @@ func _action_has_key(action_name: StringName, keycode: int) -> bool:
 				return true
 
 	return false
+
+
+func _input(event: InputEvent) -> void:
+	if _is_dead:
+		return
+	if get_tree().paused:
+		return
+	if event.is_action_pressed("skill_1"):
+		_try_cast_skill(0)
+	elif event.is_action_pressed("skill_2"):
+		_try_cast_skill(1)
+	elif event.is_action_pressed("skill_3"):
+		_try_cast_skill(2)
+	elif event.is_action_pressed("skill_4"):
+		_try_cast_skill(3)
+
+
+# W202 占位：W204 ActiveSkillCharacter 基类将 override 实际分发
+# 当前修行者按 1/2/3/4 仅触发此 warning，不破坏 v0.2 行为
+func _try_cast_skill(slot: int) -> void:
+	push_warning("W202 placeholder: skill slot %d pressed" % slot)
 
 
 func _get_next_xp_threshold(previous_threshold: float) -> float:
