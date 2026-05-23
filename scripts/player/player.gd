@@ -73,6 +73,10 @@ var _is_invincible: bool = false
 var _speed_multiplier: float = 1.0
 var _damage_multiplier: float = 1.0
 
+# 玩家朝向（W205 引入，用于孙悟空金箍棒扇形方向）
+# 修行者也有此字段但不主动使用
+var facing: Vector2 = Vector2.RIGHT
+
 @onready var _health_fill: Polygon2D = $HealthBar/Fill
 @onready var _talisman_weapon: TalismanWeapon = get_node_or_null("TalismanWeapon")
 @onready var _flying_sword_weapon: FlyingSwordWeapon = get_node_or_null("FlyingSwordWeapon")
@@ -116,6 +120,9 @@ func _physics_process(_delta: float) -> void:
 	var input_direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	velocity = input_direction * move_speed * _speed_multiplier
 	move_and_slide()
+	# W205: 更新玩家朝向（非零输入时）
+	if input_direction != Vector2.ZERO:
+		facing = input_direction.normalized()
 
 
 func take_damage(amount: float) -> void:
