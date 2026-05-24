@@ -8,11 +8,14 @@ extends CanvasLayer
 ## 调用 HUD._connect_player() 重新绑定 HUD，最后 queue_free 自身。
 
 @export var cultivator_scene: PackedScene
+@export var sun_wukong_scene: PackedScene
 
 
 func _on_sun_wukong_button_pressed() -> void:
-	# v0.3 孙悟空已删除，等待 v0.4 v2 重做
-	push_warning("孙悟空 v0.4 重做中，暂不可用")
+	if sun_wukong_scene == null:
+		push_warning("CharacterSelectPanel: sun_wukong_scene 未配置")
+		return
+	_select_character(sun_wukong_scene)
 
 
 func _on_cultivator_button_pressed() -> void:
@@ -38,6 +41,10 @@ func _select_character(scene: PackedScene) -> void:
 				hud.call("_refresh_initial_state")
 			if hud.has_method("_setup_energy_bar"):
 				hud.call("_setup_energy_bar")
+			# W212-C F10 修复：切换角色后重新初始化技能面板显隐
+			# （孙悟空 → 修行者切换时 SkillPanel 须从 visible 变为隐藏；反之亦然）
+			if hud.has_method("_setup_skill_panel"):
+				hud.call("_setup_skill_panel")
 		# 重绑 StageDirector（修复 Bug 1+5）
 		var stage_director := main.get_node_or_null("StageDirector")
 		if stage_director != null:

@@ -1,12 +1,14 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/character_select_panel.gd" id="1_character_select_panel_script"]
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="3_cultivator_scene"]
+[ext_resource type="PackedScene" path="res://scenes/player/PlayerSunWukong.tscn" id="4_sun_wukong_scene"]
 
 [node name="CharacterSelectPanel" type="CanvasLayer"]
 layer = 50
 script = ExtResource("1_character_select_panel_script")
 cultivator_scene = ExtResource("3_cultivator_scene")
+sun_wukong_scene = ExtResource("4_sun_wukong_scene")
 
 [node name="Background" type="ColorRect" parent="."]
 anchor_right = 1.0
