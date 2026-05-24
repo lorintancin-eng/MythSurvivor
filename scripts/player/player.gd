@@ -257,10 +257,16 @@ func _input(event: InputEvent) -> void:
 		_try_cast_skill(3)
 
 
-# W202 占位：W204 ActiveSkillCharacter 基类将 override 实际分发
-# 当前修行者按 1/2/3/4 仅触发此 warning，不破坏 v0.2 行为
+# W212-B：检测 _character_base 是否为 ActiveSkillCharacter，
+# 是则转发到 cast_skill(slot)；否则静默忽略（修行者按 1/2/3/4 无反应）
 func _try_cast_skill(slot: int) -> void:
-	push_warning("W202 placeholder: skill slot %d pressed" % slot)
+	if _character_base == null:
+		return
+	if not (_character_base is ActiveSkillCharacter):
+		# 非主动技能角色（如修行者）按键无反应，不输出 warning（避免 R002 噪音）
+		return
+	var skill_char := _character_base as ActiveSkillCharacter
+	skill_char.cast_skill(slot)
 
 
 func _get_next_xp_threshold(previous_threshold: float) -> float:
