@@ -4,7 +4,7 @@ extends WeaponBase
 ## 如意金箍棒 v2（孙悟空主武器）
 ##
 ## 真"无 cd"主武器：每帧检测前方扇形范围，对敌人造成伤害。
-## 防多重命中：同一敌人 0.5s 内不重复受伤。
+## 防多重命中：同一敌人 0.25s 内不重复受伤（W212-D 攻击频率翻倍）。
 ## 等级 1-4 线性成长（详见 docs/SUN_WUKONG_V2_DESIGN.md §3）：
 ##   Lv1: 扇形 120° / 半径 90 / damage 10
 ##   Lv2: 扇形 180° / 半径 110 / damage 15
@@ -14,7 +14,7 @@ extends WeaponBase
 ## 不挂任何场景。W212 SunWukong v2 场景建好后接入。
 
 @export var level: int = 1: set = _apply_level
-@export var rehit_cooldown: float = 0.5
+@export var rehit_cooldown: float = 0.25
 @export var smash_interval: float = 3.0
 @export var character_owner: String = "sun_wukong"
 @export var element: String = "metal"
@@ -54,6 +54,25 @@ func _process(delta: float) -> void:
 		if _smash_timer >= smash_interval:
 			_smash_timer = 0.0
 			_trigger_smash()
+	# 每帧重绘扇形视觉
+	queue_redraw()
+
+
+func _draw() -> void:
+	var facing := _get_facing()
+	if facing == Vector2.ZERO:
+		facing = Vector2.RIGHT
+	var base_angle := facing.angle()
+	var half_arc := deg_to_rad(_arc_deg * 0.5)
+	var color := Color(1.0, 0.78, 0.2, 0.18)
+	var segments := 16
+	var points := PackedVector2Array()
+	points.append(Vector2.ZERO)  # 圆心
+	for i in range(segments + 1):
+		var t := float(i) / float(segments)
+		var ang := base_angle - half_arc + (half_arc * 2.0) * t
+		points.append(Vector2.RIGHT.rotated(ang) * _radius)
+	draw_colored_polygon(points, color)
 
 
 func _apply_level(lv: int) -> void:

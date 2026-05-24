@@ -147,6 +147,11 @@ func apply_skill_upgrade(id: String) -> void:
 # 升级池过滤（override）
 # ─────────────────────────────────────────────
 
-## 暂时返回空数组，表示使用默认升级池（W213 完善角色专属过滤）。
+## 返回非空数组触发 player.gd 过滤逻辑：
+## player.gd 自动包含 common_ids = [max_hp, move_speed, pickup_radius, xp_gain]
+## allowed 数组中的额外 id 会被加入池子。
+## 当前 W212-D 只想要 4 个通用项（孙悟空专属升级项 W213 再加）。
+## 返回占位 marker "__sun_wukong_common_only__" — 不匹配任何 pool item，
+## 但触发过滤，效果 = 池子仅保留 common_ids 4 项。
 func _get_allowed_upgrade_ids() -> Array[String]:
-	return []
+	return ["__sun_wukong_common_only__"]
