@@ -10,6 +10,7 @@ signal demon_seal_progress_changed(progress_seconds: float, required_seconds: fl
 signal demon_seal_completed(demon_seal: Area2D)
 signal stage_cleared(elapsed_time: float)
 signal stage_failed(elapsed_time: float)
+signal boss_died(elapsed_time: float)
 
 const DEFAULT_BOSS_SCENE: PackedScene = preload("res://scenes/enemy/FamineBeastBoss.tscn")
 const DEFAULT_DEMON_SEAL_SCENE: PackedScene = preload("res://scenes/system/DemonSeal.tscn")
@@ -88,97 +89,12 @@ var _rng := RandomNumberGenerator.new()
 var _player: Player
 var _enemy_spawner: EnemySpawner
 var _demon_seal: Area2D
+var _stage_transition: Node = null
 
 
 func _ready() -> void:
-	var eff_stage_duration := _get_config_value("stage_duration", stage_duration) as float
-	eff_stage_duration = maxf(eff_stage_duration, MIN_STAGE_DURATION)
-
-	var eff_boss_warning_lead_time := _get_config_value("boss_warning_lead_time", boss_warning_lead_time) as float
-	eff_boss_warning_lead_time = clampf(eff_boss_warning_lead_time, 0.0, eff_stage_duration)
-
-	var eff_boss_spawn_distance := _get_config_value("boss_spawn_distance", boss_spawn_distance) as float
-	eff_boss_spawn_distance = maxf(eff_boss_spawn_distance, MIN_SPAWN_DISTANCE)
-
-	var eff_boss_max_hp := _get_config_value("boss_max_hp", boss_max_hp) as float
-	eff_boss_max_hp = maxf(eff_boss_max_hp, 1.0)
-
-	var eff_boss_damage := _get_config_value("boss_damage", boss_damage) as float
-	eff_boss_damage = maxf(eff_boss_damage, 0.0)
-
-	var eff_boss_scale := _get_config_value("boss_scale", boss_scale) as float
-	eff_boss_scale = maxf(eff_boss_scale, 0.1)
-
-	var eff_demon_seal_spawn_time := _get_config_value("demon_seal_spawn_time", demon_seal_spawn_time) as float
-	eff_demon_seal_spawn_time = clampf(eff_demon_seal_spawn_time, 0.0, eff_stage_duration)
-
-	var eff_demon_seal_min_spawn_distance := _get_config_value("demon_seal_min_spawn_distance", demon_seal_min_spawn_distance) as float
-	eff_demon_seal_min_spawn_distance = maxf(eff_demon_seal_min_spawn_distance, MIN_SPAWN_DISTANCE)
-
-	var eff_demon_seal_max_spawn_distance := _get_config_value("demon_seal_max_spawn_distance", demon_seal_max_spawn_distance) as float
-	eff_demon_seal_max_spawn_distance = maxf(eff_demon_seal_max_spawn_distance, eff_demon_seal_min_spawn_distance)
-
-	var eff_demon_seal_required_seconds := _get_config_value("demon_seal_required_seconds", demon_seal_required_seconds) as float
-	eff_demon_seal_required_seconds = maxf(eff_demon_seal_required_seconds, 0.1)
-
-	var eff_demon_seal_pressure_interval_multiplier := _get_config_value("demon_seal_pressure_interval_multiplier", demon_seal_pressure_interval_multiplier) as float
-	eff_demon_seal_pressure_interval_multiplier = clampf(eff_demon_seal_pressure_interval_multiplier, 0.1, 1.0)
-
-	var eff_demon_seal_pressure_max_enemy_bonus := _get_config_value("demon_seal_pressure_max_enemy_bonus", demon_seal_pressure_max_enemy_bonus) as int
-	eff_demon_seal_pressure_max_enemy_bonus = maxi(eff_demon_seal_pressure_max_enemy_bonus, 0)
-
-	var eff_demon_seal_reward_orb_count := _get_config_value("demon_seal_reward_orb_count", demon_seal_reward_orb_count) as int
-	eff_demon_seal_reward_orb_count = maxi(eff_demon_seal_reward_orb_count, 0)
-
-	var eff_demon_seal_reward_xp_value := _get_config_value("demon_seal_reward_xp_value", demon_seal_reward_xp_value) as float
-	eff_demon_seal_reward_xp_value = maxf(eff_demon_seal_reward_xp_value, 0.0)
-
-	var eff_demon_seal_reward_radius := _get_config_value("demon_seal_reward_radius", demon_seal_reward_radius) as float
-	eff_demon_seal_reward_radius = maxf(eff_demon_seal_reward_radius, 0.0)
-
-	var eff_first_elite_spawn_time := _get_config_value("first_elite_spawn_time", first_elite_spawn_time) as float
-	eff_first_elite_spawn_time = clampf(eff_first_elite_spawn_time, 0.0, eff_stage_duration)
-
-	var eff_second_elite_spawn_time := _get_config_value("second_elite_spawn_time", second_elite_spawn_time) as float
-	eff_second_elite_spawn_time = clampf(eff_second_elite_spawn_time, 0.0, eff_stage_duration)
-
-	var eff_elite_spawn_distance := _get_config_value("elite_spawn_distance", elite_spawn_distance) as float
-	eff_elite_spawn_distance = maxf(eff_elite_spawn_distance, MIN_SPAWN_DISTANCE)
-
-	# Reviewer BLOCK 修复：补齐 boss_move_speed / boss_phase_* 三个字段的 fallback
-	var eff_boss_move_speed := _get_config_value("boss_move_speed", boss_move_speed) as float
-	eff_boss_move_speed = maxf(eff_boss_move_speed, 0.0)
-
-	var eff_boss_phase_spawn_interval := _get_config_value("boss_phase_spawn_interval", boss_phase_spawn_interval) as float
-	eff_boss_phase_spawn_interval = maxf(eff_boss_phase_spawn_interval, 0.1)
-
-	var eff_boss_phase_max_enemies := _get_config_value("boss_phase_max_enemies", boss_phase_max_enemies) as int
-	eff_boss_phase_max_enemies = maxi(eff_boss_phase_max_enemies, 0)
-
-	# 将验证后的有效值写回 @export 字段，保持后续逻辑一致
-	stage_duration = eff_stage_duration
-	boss_warning_lead_time = eff_boss_warning_lead_time
-	boss_spawn_distance = eff_boss_spawn_distance
-	boss_move_speed = eff_boss_move_speed
-	boss_max_hp = eff_boss_max_hp
-	boss_damage = eff_boss_damage
-	boss_scale = eff_boss_scale
-	boss_phase_spawn_interval = eff_boss_phase_spawn_interval
-	boss_phase_max_enemies = eff_boss_phase_max_enemies
-	demon_seal_spawn_time = eff_demon_seal_spawn_time
-	demon_seal_min_spawn_distance = eff_demon_seal_min_spawn_distance
-	demon_seal_max_spawn_distance = eff_demon_seal_max_spawn_distance
-	demon_seal_required_seconds = eff_demon_seal_required_seconds
-	demon_seal_pressure_interval_multiplier = eff_demon_seal_pressure_interval_multiplier
-	demon_seal_pressure_max_enemy_bonus = eff_demon_seal_pressure_max_enemy_bonus
-	demon_seal_reward_orb_count = eff_demon_seal_reward_orb_count
-	demon_seal_reward_xp_value = eff_demon_seal_reward_xp_value
-	demon_seal_reward_radius = eff_demon_seal_reward_radius
-	first_elite_spawn_time = eff_first_elite_spawn_time
-	second_elite_spawn_time = eff_second_elite_spawn_time
-	elite_spawn_distance = eff_elite_spawn_distance
-
 	_rng.randomize()
+	_apply_config_values()
 
 	_player = get_node_or_null(player_path) as Player
 	_enemy_spawner = get_node_or_null(enemy_spawner_path) as EnemySpawner
@@ -187,6 +103,7 @@ func _ready() -> void:
 	_apply_current_wave_config(true)
 
 	stage_time_changed.emit(elapsed_time, stage_duration)
+	_setup_stage_transition()
 
 
 func _process(delta: float) -> void:
@@ -578,6 +495,9 @@ func _on_boss_died(_boss: Enemy) -> void:
 	if _enemy_spawner != null:
 		_enemy_spawner.set_spawning_enabled(false)
 	stage_cleared.emit(elapsed_time)
+	boss_died.emit(elapsed_time)
+	# F01: 延迟 1.5s 后尝试启动关卡过渡
+	_trigger_stage_transition_after_delay()
 
 
 func _on_player_died() -> void:
@@ -587,3 +507,192 @@ func _on_player_died() -> void:
 	_is_stage_failed = true
 	_set_demon_seal_pressure_active(false)
 	stage_failed.emit(elapsed_time)
+
+
+# ─────────────────────────────────────────────
+# F01 / F02 关卡过渡
+# ─────────────────────────────────────────────
+
+## 在 _ready 末尾调用，动态实例化 StageTransition 节点并接线信号
+func _setup_stage_transition() -> void:
+	var transition_packed: PackedScene = load("res://scenes/ui/StageTransition.tscn") as PackedScene
+	if transition_packed == null:
+		push_warning("StageDirector: cannot load StageTransition.tscn")
+		return
+	var transition := transition_packed.instantiate()
+	get_parent().add_child.call_deferred(transition)
+	transition.transition_midpoint.connect(_on_transition_midpoint)
+	transition.transition_completed.connect(_on_transition_completed)
+	_stage_transition = transition
+
+
+## Boss 死亡后等待 1.5s，让玩家看到通关结算，再启动过渡
+func _trigger_stage_transition_after_delay() -> void:
+	await get_tree().create_timer(1.5).timeout
+	var current_stage_id := "stage_01_huangshan"
+	if stage_config != null and stage_config.stage_id != "":
+		current_stage_id = stage_config.stage_id
+	var next_stage_id := StageRegistry.get_next_stage_id(current_stage_id)
+	if next_stage_id == "":
+		return
+	if _stage_transition != null and _stage_transition.has_method("start_transition"):
+		_stage_transition.start_transition(next_stage_id)
+	else:
+		push_warning("StageDirector: StageTransition not ready, skipping transition to %s" % next_stage_id)
+
+
+## 过渡中点：清场 + 热切换到新关卡配置
+func _on_transition_midpoint(next_stage_id: String) -> void:
+	var next_config := StageRegistry.get_stage(next_stage_id)
+	if next_config == null:
+		push_warning("StageDirector: cannot load stage %s, aborting transition" % next_stage_id)
+		return
+	load_stage_config(next_config)
+
+
+## 过渡完成回调（当前无需额外操作）
+func _on_transition_completed(_next_stage_id: String) -> void:
+	pass
+
+
+## F01/F02：热切换到新关卡配置（不重建场景，玩家状态全保留）
+## 由过渡中点回调触发
+func load_stage_config(new_config: StageConfig) -> void:
+	if new_config == null:
+		push_warning("StageDirector.load_stage_config: null config")
+		return
+
+	# 1. 清场：所有敌人 / 经验球 / 镇妖碑
+	_clear_active_objects()
+
+	# 2. 重置内部状态
+	elapsed_time = 0.0
+	_is_boss_warning_started = false
+	_is_boss_spawned = false
+	_is_demon_seal_spawned = false
+	_is_demon_seal_completed = false
+	_is_first_elite_spawned = false
+	_is_second_elite_spawned = false
+	_is_stage_cleared = false
+	_is_stage_failed = false
+	_is_demon_seal_pressure_active = false
+	_current_wave_config_index = -1
+
+	# 3. 写入新 config 并重新计算所有 eff_* 字段
+	stage_config = new_config
+	_apply_config_values()
+
+	# 4. 触发首波 wave，恢复出怪
+	if _enemy_spawner != null:
+		_enemy_spawner.set_spawning_enabled(true)
+	_apply_current_wave_config(true)
+	stage_time_changed.emit(elapsed_time, stage_duration)
+
+	# F02：通知玩家新关卡开始（重置技能 cooldown），方法不存在则静默跳过
+	if _player != null and _player.has_method("on_stage_transition"):
+		_player.call("on_stage_transition")
+
+
+## 清场：销毁所有敌人 / 经验球 / 镇妖碑
+func _clear_active_objects() -> void:
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(enemy):
+			enemy.queue_free()
+	for seal in get_tree().get_nodes_in_group("demon_seals"):
+		if is_instance_valid(seal):
+			seal.queue_free()
+	for orb in get_tree().get_nodes_in_group("experience_orbs"):
+		if is_instance_valid(orb):
+			orb.queue_free()
+	if is_instance_valid(_demon_seal):
+		_demon_seal.queue_free()
+	_demon_seal = null
+
+
+## 把 _ready 中所有 eff_* 计算 + 写回 @export 字段的逻辑提取到此函数
+## _ready() 与 load_stage_config() 均调用此函数以保持一致
+func _apply_config_values() -> void:
+	var eff_stage_duration := _get_config_value("stage_duration", stage_duration) as float
+	eff_stage_duration = maxf(eff_stage_duration, MIN_STAGE_DURATION)
+
+	var eff_boss_warning_lead_time := _get_config_value("boss_warning_lead_time", boss_warning_lead_time) as float
+	eff_boss_warning_lead_time = clampf(eff_boss_warning_lead_time, 0.0, eff_stage_duration)
+
+	var eff_boss_spawn_distance := _get_config_value("boss_spawn_distance", boss_spawn_distance) as float
+	eff_boss_spawn_distance = maxf(eff_boss_spawn_distance, MIN_SPAWN_DISTANCE)
+
+	var eff_boss_max_hp := _get_config_value("boss_max_hp", boss_max_hp) as float
+	eff_boss_max_hp = maxf(eff_boss_max_hp, 1.0)
+
+	var eff_boss_damage := _get_config_value("boss_damage", boss_damage) as float
+	eff_boss_damage = maxf(eff_boss_damage, 0.0)
+
+	var eff_boss_scale := _get_config_value("boss_scale", boss_scale) as float
+	eff_boss_scale = maxf(eff_boss_scale, 0.1)
+
+	var eff_demon_seal_spawn_time := _get_config_value("demon_seal_spawn_time", demon_seal_spawn_time) as float
+	eff_demon_seal_spawn_time = clampf(eff_demon_seal_spawn_time, 0.0, eff_stage_duration)
+
+	var eff_demon_seal_min_spawn_distance := _get_config_value("demon_seal_min_spawn_distance", demon_seal_min_spawn_distance) as float
+	eff_demon_seal_min_spawn_distance = maxf(eff_demon_seal_min_spawn_distance, MIN_SPAWN_DISTANCE)
+
+	var eff_demon_seal_max_spawn_distance := _get_config_value("demon_seal_max_spawn_distance", demon_seal_max_spawn_distance) as float
+	eff_demon_seal_max_spawn_distance = maxf(eff_demon_seal_max_spawn_distance, eff_demon_seal_min_spawn_distance)
+
+	var eff_demon_seal_required_seconds := _get_config_value("demon_seal_required_seconds", demon_seal_required_seconds) as float
+	eff_demon_seal_required_seconds = maxf(eff_demon_seal_required_seconds, 0.1)
+
+	var eff_demon_seal_pressure_interval_multiplier := _get_config_value("demon_seal_pressure_interval_multiplier", demon_seal_pressure_interval_multiplier) as float
+	eff_demon_seal_pressure_interval_multiplier = clampf(eff_demon_seal_pressure_interval_multiplier, 0.1, 1.0)
+
+	var eff_demon_seal_pressure_max_enemy_bonus := _get_config_value("demon_seal_pressure_max_enemy_bonus", demon_seal_pressure_max_enemy_bonus) as int
+	eff_demon_seal_pressure_max_enemy_bonus = maxi(eff_demon_seal_pressure_max_enemy_bonus, 0)
+
+	var eff_demon_seal_reward_orb_count := _get_config_value("demon_seal_reward_orb_count", demon_seal_reward_orb_count) as int
+	eff_demon_seal_reward_orb_count = maxi(eff_demon_seal_reward_orb_count, 0)
+
+	var eff_demon_seal_reward_xp_value := _get_config_value("demon_seal_reward_xp_value", demon_seal_reward_xp_value) as float
+	eff_demon_seal_reward_xp_value = maxf(eff_demon_seal_reward_xp_value, 0.0)
+
+	var eff_demon_seal_reward_radius := _get_config_value("demon_seal_reward_radius", demon_seal_reward_radius) as float
+	eff_demon_seal_reward_radius = maxf(eff_demon_seal_reward_radius, 0.0)
+
+	var eff_first_elite_spawn_time := _get_config_value("first_elite_spawn_time", first_elite_spawn_time) as float
+	eff_first_elite_spawn_time = clampf(eff_first_elite_spawn_time, 0.0, eff_stage_duration)
+
+	var eff_second_elite_spawn_time := _get_config_value("second_elite_spawn_time", second_elite_spawn_time) as float
+	eff_second_elite_spawn_time = clampf(eff_second_elite_spawn_time, 0.0, eff_stage_duration)
+
+	var eff_elite_spawn_distance := _get_config_value("elite_spawn_distance", elite_spawn_distance) as float
+	eff_elite_spawn_distance = maxf(eff_elite_spawn_distance, MIN_SPAWN_DISTANCE)
+
+	var eff_boss_move_speed := _get_config_value("boss_move_speed", boss_move_speed) as float
+	eff_boss_move_speed = maxf(eff_boss_move_speed, 0.0)
+
+	var eff_boss_phase_spawn_interval := _get_config_value("boss_phase_spawn_interval", boss_phase_spawn_interval) as float
+	eff_boss_phase_spawn_interval = maxf(eff_boss_phase_spawn_interval, 0.1)
+
+	var eff_boss_phase_max_enemies := _get_config_value("boss_phase_max_enemies", boss_phase_max_enemies) as int
+	eff_boss_phase_max_enemies = maxi(eff_boss_phase_max_enemies, 0)
+
+	stage_duration = eff_stage_duration
+	boss_warning_lead_time = eff_boss_warning_lead_time
+	boss_spawn_distance = eff_boss_spawn_distance
+	boss_move_speed = eff_boss_move_speed
+	boss_max_hp = eff_boss_max_hp
+	boss_damage = eff_boss_damage
+	boss_scale = eff_boss_scale
+	boss_phase_spawn_interval = eff_boss_phase_spawn_interval
+	boss_phase_max_enemies = eff_boss_phase_max_enemies
+	demon_seal_spawn_time = eff_demon_seal_spawn_time
+	demon_seal_min_spawn_distance = eff_demon_seal_min_spawn_distance
+	demon_seal_max_spawn_distance = eff_demon_seal_max_spawn_distance
+	demon_seal_required_seconds = eff_demon_seal_required_seconds
+	demon_seal_pressure_interval_multiplier = eff_demon_seal_pressure_interval_multiplier
+	demon_seal_pressure_max_enemy_bonus = eff_demon_seal_pressure_max_enemy_bonus
+	demon_seal_reward_orb_count = eff_demon_seal_reward_orb_count
+	demon_seal_reward_xp_value = eff_demon_seal_reward_xp_value
+	demon_seal_reward_radius = eff_demon_seal_reward_radius
+	first_elite_spawn_time = eff_first_elite_spawn_time
+	second_elite_spawn_time = eff_second_elite_spawn_time
+	elite_spawn_distance = eff_elite_spawn_distance
