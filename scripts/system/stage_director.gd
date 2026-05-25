@@ -56,6 +56,17 @@ const WAVE_BOSS_WARNING_START_TIME: float = 270.0
 @export var second_elite_spawn_time: float = 240.0
 @export var elite_spawn_distance: float = 420.0
 
+# ─────────────────────────────────────────────
+# DEBUG/QA：测试加速参数（默认 1.0 不影响正式游戏）
+# 调小 spawn_interval_multiplier（如 0.3）→ 出怪间隔变 3x 短，敌人更密
+# 调大 max_enemies_multiplier（如 2.0）→ 场上敌人上限翻倍
+# 用于 W214 QA 快速观察战斗体验，测试完务必改回 1.0
+# ─────────────────────────────────────────────
+@export_group("Debug / QA Test")
+@export var spawn_interval_multiplier: float = 1.0
+@export var max_enemies_multiplier: float = 1.0
+@export_group("")
+
 var elapsed_time: float = 0.0
 
 var _is_boss_warning_started: bool = false
@@ -233,6 +244,10 @@ func _apply_current_wave_config(force_apply: bool = false) -> void:
 	if _is_demon_seal_pressure_active:
 		wave_spawn_interval = maxf(wave_spawn_interval * demon_seal_pressure_interval_multiplier, 0.1)
 		wave_max_enemies += demon_seal_pressure_max_enemy_bonus
+
+	# DEBUG/QA：应用测试加速倍率（默认 1.0 / 1.0 不改变行为）
+	wave_spawn_interval = maxf(wave_spawn_interval * maxf(spawn_interval_multiplier, 0.01), 0.1)
+	wave_max_enemies = maxi(int(round(float(wave_max_enemies) * maxf(max_enemies_multiplier, 0.1))), 1)
 
 	_enemy_spawner.apply_wave_config(
 		wave_spawn_interval,
