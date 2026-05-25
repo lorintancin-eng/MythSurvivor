@@ -25,6 +25,12 @@ extends ActiveSkillCharacter
 @onready var _transform: Node2D = get_node_or_null("../Transform72")
 @onready var _immobilize: Node2D = get_node_or_null("../Immobilize")
 
+# W213: 火眼金睛升级累积层数（上限 7，每层 +5%，从 +20% 累积到 +55%）
+var _fire_eyes_bonus_stacks: int = 0
+const FIRE_EYES_BASE_MULTIPLIER: float = 1.2  # 基础 +20%
+const FIRE_EYES_STACK_BONUS: float = 0.05      # 每层 +5%
+const FIRE_EYES_MAX_STACKS: int = 7            # 上限 7 层（共 +35%）
+
 
 # ─────────────────────────────────────────────
 # 生命周期
@@ -85,16 +91,33 @@ func _on_cast_skill(slot: int) -> bool:
 # 火眼金睛被动（override）
 # ─────────────────────────────────────────────
 
-## 对精英怪或 Boss 返回 1.2（+20% 伤害），其余返回 1.0。
+## 对精英怪或 Boss 返回带 W213 累积加成的倍率，其余返回 1.0。
 ## 由武器脚本（如 JinguBangV2）在造成伤害前查询，防御性检查 target 合法性。
 func get_damage_modifier(target: Node) -> float:
 	if target == null:
 		return 1.0
+	var is_high_value := false
 	if target.is_in_group("bosses"):
-		return 1.2
-	if target.get("is_elite") == true:
-		return 1.2
-	return 1.0
+		is_high_value = true
+	elif target.get("is_elite") == true:
+		is_high_value = true
+	if not is_high_value:
+		return 1.0
+	return FIRE_EYES_BASE_MULTIPLIER + _fire_eyes_bonus_stacks * FIRE_EYES_STACK_BONUS
+
+
+## W213: 火眼金睛 +5% 升级（达到上限自动 clamp）
+## 返回 true 表示成功增加，false 表示已达上限
+func add_fire_eyes_bonus() -> bool:
+	if _fire_eyes_bonus_stacks >= FIRE_EYES_MAX_STACKS:
+		return false
+	_fire_eyes_bonus_stacks += 1
+	return true
+
+
+## W213: 查询是否已达上限（供 player.gd 池子过滤）
+func is_fire_eyes_maxed() -> bool:
+	return _fire_eyes_bonus_stacks >= FIRE_EYES_MAX_STACKS
 
 
 # ─────────────────────────────────────────────
@@ -147,11 +170,25 @@ func apply_skill_upgrade(id: String) -> void:
 # 升级池过滤（override）
 # ─────────────────────────────────────────────
 
-## 返回非空数组触发 player.gd 过滤逻辑：
+## W213: 返回孙悟空全部专属升级 ID（pool 层会按解锁状态动态过滤）
 ## player.gd 自动包含 common_ids = [max_hp, move_speed, pickup_radius, xp_gain]
-## allowed 数组中的额外 id 会被加入池子。
-## 当前 W212-D 只想要 4 个通用项（孙悟空专属升级项 W213 再加）。
-## 返回占位 marker "__sun_wukong_common_only__" — 不匹配任何 pool item，
-## 但触发过滤，效果 = 池子仅保留 common_ids 4 项。
+## 此处额外列出所有孙悟空专属 ID，player.gd 的池子过滤逻辑将决定哪些实际出现。
 func _get_allowed_upgrade_ids() -> Array[String]:
-	return ["__sun_wukong_common_only__"]
+	return [
+		"wukong_jingu_bang_damage",
+		"wukong_jingu_bang_range",
+		"wukong_jingu_bang_arc",
+		"wukong_fire_eyes_bonus",
+		"wukong_hair_clone_count",
+		"wukong_hair_clone_duration",
+		"wukong_hair_clone_damage",
+		"wukong_cloud_step_range",
+		"wukong_cloud_step_cooldown",
+		"wukong_cloud_step_damage",
+		"wukong_transform_duration",
+		"wukong_transform_cooldown",
+		"wukong_transform_form_boost",
+		"wukong_immobilize_range",
+		"wukong_immobilize_duration",
+		"wukong_immobilize_burst_damage",
+	]

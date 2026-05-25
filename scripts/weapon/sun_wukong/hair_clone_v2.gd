@@ -20,6 +20,11 @@ var _clone_interval: float = 1.5
 var _sweep_enabled: bool = false
 var _burst_enabled: bool = false
 
+# W213 升级 bonus
+var count_bonus: int = 0
+var lifetime_bonus: float = 0.0
+var damage_bonus: float = 0.0
+
 
 func _ready() -> void:
 	_apply_level(level)
@@ -70,17 +75,18 @@ func cast(player_node: Node) -> bool:
 	if scene == null:
 		push_warning("HairCloneV2.cast: current_scene is null")
 		return false
-	# 召唤 N 只分身
-	for i in range(_clone_count):
+	# 召唤 N 只分身（base + bonus）
+	var count := _clone_count + count_bonus
+	for i in range(count):
 		var clone := HairCloneUnit.new()
-		# 配置等级参数
-		clone.damage = _clone_damage
+		# 配置等级参数（含 W213 bonus）
+		clone.damage = _clone_damage + damage_bonus
 		clone.attack_interval = _clone_interval
-		clone.lifetime = _clone_lifetime
+		clone.lifetime = _clone_lifetime + lifetime_bonus
 		clone.sweep_enabled = _sweep_enabled
 		clone.burst_enabled = _burst_enabled
 		# 随机散布位置（玩家周围 ±32px）
-		var angle: float = TAU * float(i) / float(_clone_count) + randf_range(-0.3, 0.3)
+		var angle: float = TAU * float(i) / float(count) + randf_range(-0.3, 0.3)
 		var offset := Vector2.RIGHT.rotated(angle) * 32.0
 		clone.global_position = player_pos + offset
 		scene.add_child(clone)

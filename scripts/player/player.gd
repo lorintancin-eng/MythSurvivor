@@ -547,6 +547,53 @@ func _get_upgrade_pool() -> Array[Dictionary]:
 			"description": "凝出重印镇落，压制大片妖物。"
 		})
 
+	# W213: 孙悟空专属升级池（仅在 character_base 是 SunWukongV2 时添加）
+	if _character_base is SunWukongV2:
+		var swk := _character_base as SunWukongV2
+
+		# 金箍棒强化（始终可选）
+		var jingu_node := get_node_or_null("JinguBangV2")
+		if jingu_node != null:
+			pool.append({"id": "wukong_jingu_bang_damage", "title": "金箍棒·破煞 +5", "description": "金箍棒每次命中伤害提高 5。"})
+			pool.append({"id": "wukong_jingu_bang_range", "title": "金箍棒·延伸 +15", "description": "金箍棒攻击半径扩大 15。"})
+			pool.append({"id": "wukong_jingu_bang_arc", "title": "金箍棒·横扫 +20°", "description": "金箍棒扇形角度扩大 20 度。"})
+
+		# 火眼金睛强化（未到上限才出现）
+		if not swk.is_fire_eyes_maxed():
+			pool.append({"id": "wukong_fire_eyes_bonus", "title": "火眼金睛·洞彻 +5%", "description": "对精英 / Boss 伤害额外提升 5%（上限 +35%）。"})
+
+		# 毫毛分身强化（slot 0 解锁后）
+		if swk.is_skill_unlocked(0):
+			var hc_node := get_node_or_null("HairCloneV2")
+			if hc_node != null:
+				pool.append({"id": "wukong_hair_clone_count", "title": "毫毛分身 +1", "description": "每次召唤额外增加 1 只分身。"})
+				pool.append({"id": "wukong_hair_clone_duration", "title": "毫毛分身 +2s", "description": "分身持续时间延长 2 秒。"})
+				pool.append({"id": "wukong_hair_clone_damage", "title": "毫毛分身 +5", "description": "分身攻击伤害提高 5。"})
+
+		# 筋斗云强化（slot 1 解锁后）
+		if swk.is_skill_unlocked(1):
+			var cs_node := get_node_or_null("CloudStep")
+			if cs_node != null:
+				pool.append({"id": "wukong_cloud_step_range", "title": "筋斗云·远翔 +50", "description": "筋斗云冲刺距离增加 50。"})
+				pool.append({"id": "wukong_cloud_step_cooldown", "title": "筋斗云·疾风 -2s", "description": "筋斗云冷却缩短 2 秒。"})
+				pool.append({"id": "wukong_cloud_step_damage", "title": "筋斗云·路径 +10", "description": "筋斗云路径伤害提高 10。"})
+
+		# 七十二变强化（slot 2 解锁后）
+		if swk.is_skill_unlocked(2):
+			var tf_node := get_node_or_null("Transform72")
+			if tf_node != null:
+				pool.append({"id": "wukong_transform_duration", "title": "七十二变 +2s", "description": "变化持续时间延长 2 秒。"})
+				pool.append({"id": "wukong_transform_cooldown", "title": "七十二变 -5s", "description": "变化冷却缩短 5 秒。"})
+				pool.append({"id": "wukong_transform_form_boost", "title": "七十二变·精进 +10%", "description": "变化期间形态加成额外提升 10%。"})
+
+		# 定身术强化（slot 3 解锁后）
+		if swk.is_skill_unlocked(3):
+			var im_node := get_node_or_null("Immobilize")
+			if im_node != null:
+				pool.append({"id": "wukong_immobilize_range", "title": "定身术 +50", "description": "定身术范围扩大 50。"})
+				pool.append({"id": "wukong_immobilize_duration", "title": "定身术 +0.3s", "description": "定身术持续时间延长 0.3 秒。"})
+				pool.append({"id": "wukong_immobilize_burst_damage", "title": "定身术·爆裂 +10", "description": "Lv3+ 符印爆裂伤害提高 10。"})
+
 	if _character_base != null:
 		var allowed: Array[String] = _character_base._get_allowed_upgrade_ids()
 		if not allowed.is_empty():
@@ -586,6 +633,77 @@ func _apply_upgrade(upgrade_id: StringName) -> void:
 			upgrade_applied.emit(upgrade_id)
 		else:
 			push_warning("Skill upgrade %s but no ActiveSkillCharacter attached" % id_str)
+		return
+
+	# W213: 孙悟空专属升级（wukong_jingu_bang_* / wukong_fire_eyes_* / wukong_hair_clone_* 等）
+	if id_str.begins_with("wukong_") and not id_str.begins_with("wukong_skill_"):
+		if not (_character_base is SunWukongV2):
+			push_warning("W213 upgrade %s but no SunWukongV2 attached" % id_str)
+			return
+		var swk := _character_base as SunWukongV2
+		match id_str:
+			"wukong_jingu_bang_damage":
+				var n := get_node_or_null("JinguBangV2")
+				if n != null:
+					n.damage_bonus += 5.0
+			"wukong_jingu_bang_range":
+				var n := get_node_or_null("JinguBangV2")
+				if n != null:
+					n.radius_bonus += 15.0
+			"wukong_jingu_bang_arc":
+				var n := get_node_or_null("JinguBangV2")
+				if n != null:
+					n.arc_bonus += 20.0
+			"wukong_fire_eyes_bonus":
+				swk.add_fire_eyes_bonus()
+			"wukong_hair_clone_count":
+				var n := get_node_or_null("HairCloneV2")
+				if n != null:
+					n.count_bonus += 1
+			"wukong_hair_clone_duration":
+				var n := get_node_or_null("HairCloneV2")
+				if n != null:
+					n.lifetime_bonus += 2.0
+			"wukong_hair_clone_damage":
+				var n := get_node_or_null("HairCloneV2")
+				if n != null:
+					n.damage_bonus += 5.0
+			"wukong_cloud_step_range":
+				var n := get_node_or_null("CloudStep")
+				if n != null:
+					n.dash_distance_bonus += 50.0
+			"wukong_cloud_step_cooldown":
+				swk.reduce_skill_max_cd(1, 2.0)
+			"wukong_cloud_step_damage":
+				var n := get_node_or_null("CloudStep")
+				if n != null:
+					n.path_damage_bonus += 10.0
+			"wukong_transform_duration":
+				var n := get_node_or_null("Transform72")
+				if n != null:
+					n.duration_bonus += 2.0
+			"wukong_transform_cooldown":
+				swk.reduce_skill_max_cd(2, 5.0)
+			"wukong_transform_form_boost":
+				var n := get_node_or_null("Transform72")
+				if n != null:
+					n.form_boost_bonus += 0.1
+			"wukong_immobilize_range":
+				var n := get_node_or_null("Immobilize")
+				if n != null:
+					n.radius_bonus += 50.0
+			"wukong_immobilize_duration":
+				var n := get_node_or_null("Immobilize")
+				if n != null:
+					n.duration_bonus += 0.3
+			"wukong_immobilize_burst_damage":
+				var n := get_node_or_null("Immobilize")
+				if n != null:
+					n.burst_damage_bonus += 10.0
+			_:
+				push_warning("Unknown Sun Wukong upgrade: %s" % id_str)
+				return
+		upgrade_applied.emit(upgrade_id)
 		return
 
 	match upgrade_id:

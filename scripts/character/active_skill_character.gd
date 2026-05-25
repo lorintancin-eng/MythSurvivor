@@ -191,3 +191,16 @@ func get_skill_level(slot: int) -> int:
 	if slot < 0 or slot > 3:
 		return 0
 	return _skill_levels[slot]
+
+
+## W213: 降低指定技能槽的 cooldown 上限（用于升级项 cooldown -2s / -5s）
+## 不影响 _skill_cooldowns（当前正在 tick 的计时）
+## min_cd 防御：cooldown 不可低于 1.0s
+## HUD 防御：若当前 remaining > new max，clamp 防止进度条溢出
+func reduce_skill_max_cd(slot: int, amount: float) -> void:
+	if slot < 0 or slot > 3:
+		return
+	_skill_max_cds[slot] = maxf(_skill_max_cds[slot] - amount, 1.0)
+	_skill_cooldowns[slot] = minf(_skill_cooldowns[slot], _skill_max_cds[slot])
+	# 通知 HUD 更新 max_cd 显示
+	skill_cooldown_changed.emit(slot, _skill_cooldowns[slot], _skill_max_cds[slot], _skill_unlocked[slot])

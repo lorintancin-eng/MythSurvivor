@@ -28,6 +28,11 @@ var _smash_damage: float = 40.0
 var _smash_knockback: float = 80.0
 var _fissure_enabled: bool = false
 
+# W213 升级 bonus（与 _apply_level base 值叠加）
+var damage_bonus: float = 0.0
+var radius_bonus: float = 0.0
+var arc_bonus: float = 0.0
+
 # 命中冷却字典 {Enemy: 剩余 cooldown s}
 var _hit_cooldowns: Dictionary = {}
 
@@ -63,7 +68,7 @@ func _draw() -> void:
 	if facing == Vector2.ZERO:
 		facing = Vector2.RIGHT
 	var base_angle := facing.angle()
-	var half_arc := deg_to_rad(_arc_deg * 0.5)
+	var half_arc := deg_to_rad((_arc_deg + arc_bonus) * 0.5)
 	var color := Color(1.0, 0.78, 0.2, 0.18)
 	var segments := 16
 	var points := PackedVector2Array()
@@ -71,7 +76,7 @@ func _draw() -> void:
 	for i in range(segments + 1):
 		var t := float(i) / float(segments)
 		var ang := base_angle - half_arc + (half_arc * 2.0) * t
-		points.append(Vector2.RIGHT.rotated(ang) * _radius)
+		points.append(Vector2.RIGHT.rotated(ang) * (_radius + radius_bonus))
 	draw_colored_polygon(points, color)
 
 
@@ -134,8 +139,8 @@ func _get_fire_eyes_modifier(target: Node) -> float:
 
 func _check_fan_hits() -> void:
 	var facing := _get_facing()
-	var half_arc_cos := cos(deg_to_rad(_arc_deg * 0.5))
-	var radius_sq := _radius * _radius
+	var half_arc_cos := cos(deg_to_rad((_arc_deg + arc_bonus) * 0.5))
+	var radius_sq := (_radius + radius_bonus) * (_radius + radius_bonus)
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
 			continue
@@ -152,7 +157,7 @@ func _check_fan_hits() -> void:
 			continue
 		# 命中
 		if enemy_node.has_method("take_damage"):
-			enemy_node.take_damage(_get_damage() * _get_fire_eyes_modifier(enemy_node))
+			enemy_node.take_damage((_get_damage() + damage_bonus) * _get_fire_eyes_modifier(enemy_node))
 		_hit_cooldowns[enemy_node] = rehit_cooldown
 
 

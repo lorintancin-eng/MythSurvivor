@@ -22,6 +22,11 @@ var _burst_damage: float = 35.0
 var _burst_radius: float = 100.0
 var _can_break_elite: bool = false  # Lv4
 
+# W213 升级 bonus
+var radius_bonus: float = 0.0
+var duration_bonus: float = 0.0
+var burst_damage_bonus: float = 0.0
+
 var _active_immobilizations: Array = []  # [{enemy, end_time}, ...]
 
 
@@ -89,8 +94,8 @@ func cast(player_node: Node) -> bool:
 	if player_node == null or not player_node is Node2D:
 		return false
 	var center: Vector2 = (player_node as Node2D).global_position
-	var radius_sq := _radius * _radius
-	var end_time := Time.get_ticks_msec() / 1000.0 + _duration
+	var radius_sq := (_radius + radius_bonus) * (_radius + radius_bonus)
+	var end_time := Time.get_ticks_msec() / 1000.0 + (_duration + duration_bonus)
 	# 收集范围内敌人
 	var caught: Array = []
 	for enemy in get_tree().get_nodes_in_group("enemies"):
@@ -104,10 +109,10 @@ func cast(player_node: Node) -> bool:
 		# Lv4 才能打断精英（其他等级跳过精英）
 		var is_elite: bool = enemy.get("is_elite") if "is_elite" in enemy else false
 		if is_elite and not _can_break_elite:
-			# Lv1-3 对精英定身时间减半
+			# Lv1-3 对精英定身时间减半（含 bonus）
 			_active_immobilizations.append({
 				"enemy": enemy_node,
-				"end_time": Time.get_ticks_msec() / 1000.0 + _duration * 0.5,
+				"end_time": Time.get_ticks_msec() / 1000.0 + (_duration + duration_bonus) * 0.5,
 			})
 			caught.append(enemy_node)
 			continue
@@ -116,9 +121,9 @@ func cast(player_node: Node) -> bool:
 			"end_time": end_time,
 		})
 		caught.append(enemy_node)
-	# Lv3+ 结束爆裂（在定身 duration 结束后触发）
+	# Lv3+ 结束爆裂（在定身 duration 结束后触发；含 W213 duration_bonus）
 	if _burst_enabled and not caught.is_empty():
-		get_tree().create_timer(_duration).timeout.connect(_do_burst.bind(caught))
+		get_tree().create_timer(_duration + duration_bonus).timeout.connect(_do_burst.bind(caught))
 	return true
 
 
@@ -141,6 +146,6 @@ func _do_burst(caught_enemies: Array) -> void:
 			if enemy_node.global_position.distance_squared_to(nearby_node.global_position) > burst_sq:
 				continue
 			if nearby_node.has_method("take_damage"):
-				nearby_node.take_damage(_burst_damage)
+				nearby_node.take_damage(_burst_damage + burst_damage_bonus)
 		# 只对第一个敌人触发一次爆裂（避免多个敌人重复爆）
 		break

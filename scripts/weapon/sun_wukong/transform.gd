@@ -36,6 +36,10 @@ var _enhanced_buffs: bool = false  # Lv3+
 var _current_form: String = ""
 var _player_ref: WeakRef = null
 
+# W213 升级 bonus
+var duration_bonus: float = 0.0
+var form_boost_bonus: float = 0.0  # 形态 buff 倍率额外加成（如 +10%）
+
 
 func _ready() -> void:
 	_apply_level(level)
@@ -74,8 +78,8 @@ func cast(player_node: Node) -> bool:
 	_player_ref = weakref(player_node)
 	# 应用 buff
 	_apply_form_buff(player_node, _current_form)
-	# 持续时间结束后恢复
-	get_tree().create_timer(_duration).timeout.connect(_on_duration_end)
+	# 持续时间结束后恢复（base + W213 bonus）
+	get_tree().create_timer(_duration + duration_bonus).timeout.connect(_on_duration_end)
 	return true
 
 
@@ -109,6 +113,10 @@ func _apply_form_buff(player_node: Node, form: String) -> void:
 	if _enhanced_buffs:
 		speed_mult *= 1.1
 		dmg_mult *= 1.1
+	# W213: form_boost_bonus 额外乘到倍率上（+10% 即 form_boost_bonus = 0.1）
+	if form_boost_bonus > 0.0:
+		speed_mult *= (1.0 + form_boost_bonus)
+		dmg_mult *= (1.0 + form_boost_bonus)
 	if player_node.has_method("set_speed_multiplier"):
 		player_node.set_speed_multiplier(speed_mult)
 	if player_node.has_method("set_damage_multiplier"):

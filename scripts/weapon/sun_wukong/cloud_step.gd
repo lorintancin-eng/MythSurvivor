@@ -23,6 +23,10 @@ var _invincible_enabled: bool = false  # Lv3+
 var _cd_reduction_on_elite: bool = false  # Lv3+
 var _afterimage_enabled: bool = false  # Lv4
 
+# W213 升级 bonus（cooldown 通过 active_skill_character.reduce_skill_max_cd 改）
+var dash_distance_bonus: float = 0.0
+var path_damage_bonus: float = 0.0
+
 
 func _ready() -> void:
 	_apply_level(level)
@@ -70,9 +74,9 @@ func cast(player_node: Node) -> bool:
 	var facing: Vector2 = Vector2.RIGHT
 	if "facing" in player_node:
 		facing = player_node.facing
-	# 起止位置
+	# 起止位置（base + W213 bonus）
 	var start_pos: Vector2 = player2d.global_position
-	var end_pos: Vector2 = start_pos + facing * _dash_distance
+	var end_pos: Vector2 = start_pos + facing * (_dash_distance + dash_distance_bonus)
 	# 1. 瞬移玩家
 	player2d.global_position = end_pos
 	# 2. 路径敌人伤害（矩形检测：起点到终点，宽 path_width）
@@ -108,9 +112,9 @@ func _apply_path_damage(start_pos: Vector2, end_pos: Vector2, dir: Vector2) -> v
 		var perp: float = (to_enemy - dir * along).length()
 		if perp > half_width:
 			continue
-		# 命中
+		# 命中（base + W213 bonus）
 		if enemy_node.has_method("take_damage"):
-			enemy_node.take_damage(_path_damage)
+			enemy_node.take_damage(_path_damage + path_damage_bonus)
 
 
 func _spawn_afterimage(start_pos: Vector2, end_pos: Vector2, dir: Vector2) -> void:
