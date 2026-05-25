@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="WavePoolConfig" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/wave_pool_config.gd" id="1_wpc_script"]
+[ext_resource type="Resource" path="res://resources/enemies/paper_doll.tres" id="2_paper_doll"]
+[ext_resource type="Resource" path="res://resources/enemies/grieving_infant.tres" id="3_grieving_infant"]
+[ext_resource type="Resource" path="res://resources/enemies/lantern_ghost.tres" id="4_lantern_ghost"]
+[ext_resource type="Resource" path="res://resources/enemies/ghost_officer.tres" id="5_ghost_officer"]
+
+[resource]
+script = ExtResource("1_wpc_script")
+archetypes = [ExtResource("2_paper_doll"), ExtResource("3_grieving_infant"), ExtResource("4_lantern_ghost"), ExtResource("5_ghost_officer")]
+weights = [2.5, 3.0, 1.0, 0.6]

@@ -116,11 +116,19 @@ func get_effective_archetype_count() -> int:
 
 
 func _create_enemy(enemy_archetype: Resource, affixes: Array[String] = []) -> Enemy:
-	if enemy_scene == null:
-		push_warning("EnemySpawner has no enemy_scene.")
+	# v0.5: prefer archetype's own scene (D02/D03/D05 independent-script enemies);
+	# fall back to spawner's default enemy_scene so L001 behaviour is unchanged.
+	var scene_to_use: PackedScene = enemy_scene
+	if enemy_archetype != null and "enemy_scene" in enemy_archetype:
+		var archetype_scene: PackedScene = enemy_archetype.enemy_scene
+		if archetype_scene != null:
+			scene_to_use = archetype_scene
+
+	if scene_to_use == null:
+		push_warning("EnemySpawner: no scene available for archetype.")
 		return null
 
-	var enemy_instance := enemy_scene.instantiate()
+	var enemy_instance := scene_to_use.instantiate()
 	if not enemy_instance is Enemy:
 		push_error("EnemySpawner enemy_scene must instantiate an Enemy.")
 		enemy_instance.queue_free()

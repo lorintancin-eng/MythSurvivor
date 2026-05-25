@@ -28,3 +28,7 @@ enum MovementMode {
 @export var elite_speed_multiplier: float = 1.05
 @export var iron_bones_health_multiplier: float = 1.45
 @export var swift_speed_multiplier: float = 1.3
+
+## v0.5: custom scene for archetypes that need their own script (D02/D03/D05 etc.)
+## When null, EnemySpawner falls back to its own @export enemy_scene (Enemy.tscn by default)
+@export var enemy_scene: PackedScene
