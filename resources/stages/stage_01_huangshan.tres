@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="StageConfig" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/stage_config.gd" id="1_stage_config_script"]
+[ext_resource type="PackedScene" path="res://scenes/enemy/FamineBeastBoss.tscn" id="2_boss_scene"]
+[ext_resource type="PackedScene" path="res://scenes/system/DemonSeal.tscn" id="3_demon_seal_scene"]
+[ext_resource type="PackedScene" path="res://scenes/system/ExperienceOrb.tscn" id="4_experience_orb_scene"]
+[ext_resource type="Resource" path="res://resources/stages/wave_pools/wave_0_pool.tres" id="5_wave_0_pool"]
+[ext_resource type="Resource" path="res://resources/stages/wave_pools/wave_1_pool.tres" id="6_wave_1_pool"]
+[ext_resource type="Resource" path="res://resources/stages/wave_pools/wave_2_pool.tres" id="7_wave_2_pool"]
+[ext_resource type="Resource" path="res://resources/stages/wave_pools/wave_3_pool.tres" id="8_wave_3_pool"]
+[ext_resource type="Resource" path="res://resources/stages/wave_pools/wave_4_pool.tres" id="9_wave_4_pool"]
+
+[resource]
+script = ExtResource("1_stage_config_script")
+stage_id = "stage_01_huangshan"
+stage_name = "一·荒山古道"
+stage_duration = 300.0
+wave_two_start_time = 60.0
+wave_three_start_time = 120.0
+wave_four_start_time = 180.0
+wave_boss_warning_start_time = 270.0
+wave_spawn_intervals = [1.35, 1.08, 0.9, 0.72, 0.55]
+wave_max_enemies = [18, 24, 32, 42, 56]
+wave_pools = [ExtResource("5_wave_0_pool"), ExtResource("6_wave_1_pool"), ExtResource("7_wave_2_pool"), ExtResource("8_wave_3_pool"), ExtResource("9_wave_4_pool")]
+boss_scene = ExtResource("2_boss_scene")
+boss_warning_lead_time = 30.0
+boss_spawn_distance = 420.0
+boss_move_speed = 70.0
+boss_max_hp = 260.0
+boss_damage = 16.0
+boss_scale = 1.8
+boss_phase_spawn_interval = 2.5
+boss_phase_max_enemies = 8
+demon_seal_scene = ExtResource("3_demon_seal_scene")
+demon_seal_spawn_time = 120.0
+demon_seal_min_spawn_distance = 200.0
+demon_seal_max_spawn_distance = 280.0
+demon_seal_required_seconds = 8.0
+demon_seal_pressure_interval_multiplier = 0.65
+demon_seal_pressure_max_enemy_bonus = 6
+demon_seal_reward_orb_count = 8
+demon_seal_reward_xp_value = 6.0
+demon_seal_reward_radius = 54.0
+first_elite_spawn_time = 180.0
+second_elite_spawn_time = 240.0
+elite_spawn_distance = 420.0
+experience_orb_scene = ExtResource("4_experience_orb_scene")

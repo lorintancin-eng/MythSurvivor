@@ -24,10 +24,15 @@ const MIN_STAGE_DURATION: float = 1.0
 const MIN_SPAWN_DISTANCE: float = 80.0
 const ELITE_AFFIX_IRON_BONES: String = "iron_bones"
 const ELITE_AFFIX_SWIFT: String = "swift"
+## v0.2 fallback wave 时间节点（stage_config 未设置时使用）
 const WAVE_TWO_START_TIME: float = 60.0
 const WAVE_THREE_START_TIME: float = 120.0
 const WAVE_FOUR_START_TIME: float = 180.0
 const WAVE_BOSS_WARNING_START_TIME: float = 270.0
+
+## 关卡配置资源（v0.5 新增）
+## 如果设置则覆盖所有 @export 默认值；未设置时沿用 @export 默认（v0.2 兼容路径）
+@export var stage_config: StageConfig
 
 @export var player_path: NodePath = ^"../Player"
 @export var enemy_spawner_path: NodePath = ^"../EnemySpawner"
@@ -86,24 +91,93 @@ var _demon_seal: Area2D
 
 
 func _ready() -> void:
-	stage_duration = maxf(stage_duration, MIN_STAGE_DURATION)
-	boss_warning_lead_time = clampf(boss_warning_lead_time, 0.0, stage_duration)
-	boss_spawn_distance = maxf(boss_spawn_distance, MIN_SPAWN_DISTANCE)
-	boss_max_hp = maxf(boss_max_hp, 1.0)
-	boss_damage = maxf(boss_damage, 0.0)
-	boss_scale = maxf(boss_scale, 0.1)
-	demon_seal_spawn_time = clampf(demon_seal_spawn_time, 0.0, stage_duration)
-	demon_seal_min_spawn_distance = maxf(demon_seal_min_spawn_distance, MIN_SPAWN_DISTANCE)
-	demon_seal_max_spawn_distance = maxf(demon_seal_max_spawn_distance, demon_seal_min_spawn_distance)
-	demon_seal_required_seconds = maxf(demon_seal_required_seconds, 0.1)
-	demon_seal_pressure_interval_multiplier = clampf(demon_seal_pressure_interval_multiplier, 0.1, 1.0)
-	demon_seal_pressure_max_enemy_bonus = maxi(demon_seal_pressure_max_enemy_bonus, 0)
-	demon_seal_reward_orb_count = maxi(demon_seal_reward_orb_count, 0)
-	demon_seal_reward_xp_value = maxf(demon_seal_reward_xp_value, 0.0)
-	demon_seal_reward_radius = maxf(demon_seal_reward_radius, 0.0)
-	first_elite_spawn_time = clampf(first_elite_spawn_time, 0.0, stage_duration)
-	second_elite_spawn_time = clampf(second_elite_spawn_time, 0.0, stage_duration)
-	elite_spawn_distance = maxf(elite_spawn_distance, MIN_SPAWN_DISTANCE)
+	var eff_stage_duration := _get_config_value("stage_duration", stage_duration) as float
+	eff_stage_duration = maxf(eff_stage_duration, MIN_STAGE_DURATION)
+
+	var eff_boss_warning_lead_time := _get_config_value("boss_warning_lead_time", boss_warning_lead_time) as float
+	eff_boss_warning_lead_time = clampf(eff_boss_warning_lead_time, 0.0, eff_stage_duration)
+
+	var eff_boss_spawn_distance := _get_config_value("boss_spawn_distance", boss_spawn_distance) as float
+	eff_boss_spawn_distance = maxf(eff_boss_spawn_distance, MIN_SPAWN_DISTANCE)
+
+	var eff_boss_max_hp := _get_config_value("boss_max_hp", boss_max_hp) as float
+	eff_boss_max_hp = maxf(eff_boss_max_hp, 1.0)
+
+	var eff_boss_damage := _get_config_value("boss_damage", boss_damage) as float
+	eff_boss_damage = maxf(eff_boss_damage, 0.0)
+
+	var eff_boss_scale := _get_config_value("boss_scale", boss_scale) as float
+	eff_boss_scale = maxf(eff_boss_scale, 0.1)
+
+	var eff_demon_seal_spawn_time := _get_config_value("demon_seal_spawn_time", demon_seal_spawn_time) as float
+	eff_demon_seal_spawn_time = clampf(eff_demon_seal_spawn_time, 0.0, eff_stage_duration)
+
+	var eff_demon_seal_min_spawn_distance := _get_config_value("demon_seal_min_spawn_distance", demon_seal_min_spawn_distance) as float
+	eff_demon_seal_min_spawn_distance = maxf(eff_demon_seal_min_spawn_distance, MIN_SPAWN_DISTANCE)
+
+	var eff_demon_seal_max_spawn_distance := _get_config_value("demon_seal_max_spawn_distance", demon_seal_max_spawn_distance) as float
+	eff_demon_seal_max_spawn_distance = maxf(eff_demon_seal_max_spawn_distance, eff_demon_seal_min_spawn_distance)
+
+	var eff_demon_seal_required_seconds := _get_config_value("demon_seal_required_seconds", demon_seal_required_seconds) as float
+	eff_demon_seal_required_seconds = maxf(eff_demon_seal_required_seconds, 0.1)
+
+	var eff_demon_seal_pressure_interval_multiplier := _get_config_value("demon_seal_pressure_interval_multiplier", demon_seal_pressure_interval_multiplier) as float
+	eff_demon_seal_pressure_interval_multiplier = clampf(eff_demon_seal_pressure_interval_multiplier, 0.1, 1.0)
+
+	var eff_demon_seal_pressure_max_enemy_bonus := _get_config_value("demon_seal_pressure_max_enemy_bonus", demon_seal_pressure_max_enemy_bonus) as int
+	eff_demon_seal_pressure_max_enemy_bonus = maxi(eff_demon_seal_pressure_max_enemy_bonus, 0)
+
+	var eff_demon_seal_reward_orb_count := _get_config_value("demon_seal_reward_orb_count", demon_seal_reward_orb_count) as int
+	eff_demon_seal_reward_orb_count = maxi(eff_demon_seal_reward_orb_count, 0)
+
+	var eff_demon_seal_reward_xp_value := _get_config_value("demon_seal_reward_xp_value", demon_seal_reward_xp_value) as float
+	eff_demon_seal_reward_xp_value = maxf(eff_demon_seal_reward_xp_value, 0.0)
+
+	var eff_demon_seal_reward_radius := _get_config_value("demon_seal_reward_radius", demon_seal_reward_radius) as float
+	eff_demon_seal_reward_radius = maxf(eff_demon_seal_reward_radius, 0.0)
+
+	var eff_first_elite_spawn_time := _get_config_value("first_elite_spawn_time", first_elite_spawn_time) as float
+	eff_first_elite_spawn_time = clampf(eff_first_elite_spawn_time, 0.0, eff_stage_duration)
+
+	var eff_second_elite_spawn_time := _get_config_value("second_elite_spawn_time", second_elite_spawn_time) as float
+	eff_second_elite_spawn_time = clampf(eff_second_elite_spawn_time, 0.0, eff_stage_duration)
+
+	var eff_elite_spawn_distance := _get_config_value("elite_spawn_distance", elite_spawn_distance) as float
+	eff_elite_spawn_distance = maxf(eff_elite_spawn_distance, MIN_SPAWN_DISTANCE)
+
+	# Reviewer BLOCK 修复：补齐 boss_move_speed / boss_phase_* 三个字段的 fallback
+	var eff_boss_move_speed := _get_config_value("boss_move_speed", boss_move_speed) as float
+	eff_boss_move_speed = maxf(eff_boss_move_speed, 0.0)
+
+	var eff_boss_phase_spawn_interval := _get_config_value("boss_phase_spawn_interval", boss_phase_spawn_interval) as float
+	eff_boss_phase_spawn_interval = maxf(eff_boss_phase_spawn_interval, 0.1)
+
+	var eff_boss_phase_max_enemies := _get_config_value("boss_phase_max_enemies", boss_phase_max_enemies) as int
+	eff_boss_phase_max_enemies = maxi(eff_boss_phase_max_enemies, 0)
+
+	# 将验证后的有效值写回 @export 字段，保持后续逻辑一致
+	stage_duration = eff_stage_duration
+	boss_warning_lead_time = eff_boss_warning_lead_time
+	boss_spawn_distance = eff_boss_spawn_distance
+	boss_move_speed = eff_boss_move_speed
+	boss_max_hp = eff_boss_max_hp
+	boss_damage = eff_boss_damage
+	boss_scale = eff_boss_scale
+	boss_phase_spawn_interval = eff_boss_phase_spawn_interval
+	boss_phase_max_enemies = eff_boss_phase_max_enemies
+	demon_seal_spawn_time = eff_demon_seal_spawn_time
+	demon_seal_min_spawn_distance = eff_demon_seal_min_spawn_distance
+	demon_seal_max_spawn_distance = eff_demon_seal_max_spawn_distance
+	demon_seal_required_seconds = eff_demon_seal_required_seconds
+	demon_seal_pressure_interval_multiplier = eff_demon_seal_pressure_interval_multiplier
+	demon_seal_pressure_max_enemy_bonus = eff_demon_seal_pressure_max_enemy_bonus
+	demon_seal_reward_orb_count = eff_demon_seal_reward_orb_count
+	demon_seal_reward_xp_value = eff_demon_seal_reward_xp_value
+	demon_seal_reward_radius = eff_demon_seal_reward_radius
+	first_elite_spawn_time = eff_first_elite_spawn_time
+	second_elite_spawn_time = eff_second_elite_spawn_time
+	elite_spawn_distance = eff_elite_spawn_distance
+
 	_rng.randomize()
 
 	_player = get_node_or_null(player_path) as Player
@@ -140,13 +214,29 @@ func _process(delta: float) -> void:
 		_spawn_boss()
 
 
+## 优先返回 stage_config 字段值，回退到 @export 默认值
+## 用于在 _ready 中读取并覆盖 @export 字段
+func _get_config_value(field_name: String, fallback: Variant) -> Variant:
+	if stage_config != null:
+		var value: Variant = stage_config.get(field_name)
+		if value != null:
+			return value
+	return fallback
+
+
 func _spawn_demon_seal() -> void:
 	_is_demon_seal_spawned = true
-	if demon_seal_scene == null:
+	var eff_demon_seal_scene: PackedScene
+	if stage_config != null and stage_config.demon_seal_scene != null:
+		eff_demon_seal_scene = stage_config.demon_seal_scene
+	else:
+		eff_demon_seal_scene = demon_seal_scene
+
+	if eff_demon_seal_scene == null:
 		push_warning("StageDirector has no demon_seal_scene.")
 		return
 
-	var seal_instance := demon_seal_scene.instantiate()
+	var seal_instance := eff_demon_seal_scene.instantiate()
 	if not seal_instance is Area2D:
 		push_error("StageDirector demon_seal_scene must instantiate an Area2D.")
 		seal_instance.queue_free()
@@ -172,11 +262,19 @@ func _spawn_boss() -> void:
 	_is_boss_spawned = true
 	_apply_boss_phase_spawn_pressure()
 
-	if boss_scene == null:
+	var eff_boss_scene: PackedScene
+	if stage_config != null and stage_config.boss_scene != null:
+		eff_boss_scene = stage_config.boss_scene
+	elif boss_scene != null:
+		eff_boss_scene = boss_scene
+	else:
+		eff_boss_scene = DEFAULT_BOSS_SCENE
+
+	if eff_boss_scene == null:
 		push_warning("StageDirector has no boss_scene.")
 		return
 
-	var boss_instance := boss_scene.instantiate()
+	var boss_instance := eff_boss_scene.instantiate()
 	if not boss_instance is Enemy:
 		push_error("StageDirector boss_scene must instantiate an Enemy.")
 		boss_instance.queue_free()
@@ -258,19 +356,38 @@ func _apply_current_wave_config(force_apply: bool = false) -> void:
 
 
 func _get_wave_config_index() -> int:
-	if elapsed_time >= WAVE_BOSS_WARNING_START_TIME:
+	var boss_warning_time: float
+	var wave_four_time: float
+	var wave_three_time: float
+	var wave_two_time: float
+
+	if stage_config != null:
+		boss_warning_time = stage_config.wave_boss_warning_start_time
+		wave_four_time = stage_config.wave_four_start_time
+		wave_three_time = stage_config.wave_three_start_time
+		wave_two_time = stage_config.wave_two_start_time
+	else:
+		boss_warning_time = WAVE_BOSS_WARNING_START_TIME
+		wave_four_time = WAVE_FOUR_START_TIME
+		wave_three_time = WAVE_THREE_START_TIME
+		wave_two_time = WAVE_TWO_START_TIME
+
+	if elapsed_time >= boss_warning_time:
 		return 4
-	if elapsed_time >= WAVE_FOUR_START_TIME:
+	if elapsed_time >= wave_four_time:
 		return 3
-	if elapsed_time >= WAVE_THREE_START_TIME:
+	if elapsed_time >= wave_three_time:
 		return 2
-	if elapsed_time >= WAVE_TWO_START_TIME:
+	if elapsed_time >= wave_two_time:
 		return 1
 
 	return 0
 
 
 func _get_wave_spawn_interval(wave_config_index: int) -> float:
+	if stage_config != null and stage_config.wave_spawn_intervals.size() > wave_config_index:
+		return stage_config.wave_spawn_intervals[wave_config_index]
+	# Fallback: 沿用 v0.2 硬编码
 	match wave_config_index:
 		0:
 			return 1.35
@@ -285,6 +402,9 @@ func _get_wave_spawn_interval(wave_config_index: int) -> float:
 
 
 func _get_wave_max_enemies(wave_config_index: int) -> int:
+	if stage_config != null and stage_config.wave_max_enemies.size() > wave_config_index:
+		return stage_config.wave_max_enemies[wave_config_index]
+	# Fallback: 沿用 v0.2 硬编码
 	match wave_config_index:
 		0:
 			return 18
@@ -299,6 +419,11 @@ func _get_wave_max_enemies(wave_config_index: int) -> int:
 
 
 func _get_wave_archetype_pool(wave_config_index: int) -> Array[Resource]:
+	if stage_config != null and stage_config.wave_pools.size() > wave_config_index:
+		var pool := stage_config.wave_pools[wave_config_index]
+		if pool != null:
+			return pool.archetypes.duplicate()
+	# Fallback: 沿用 v0.2 硬编码
 	match wave_config_index:
 		0:
 			return [
@@ -323,6 +448,11 @@ func _get_wave_archetype_pool(wave_config_index: int) -> Array[Resource]:
 
 
 func _get_wave_archetype_weights(wave_config_index: int) -> Array[float]:
+	if stage_config != null and stage_config.wave_pools.size() > wave_config_index:
+		var pool := stage_config.wave_pools[wave_config_index]
+		if pool != null:
+			return pool.weights.duplicate()
+	# Fallback: 沿用 v0.2 硬编码
 	match wave_config_index:
 		0:
 			return [4.0, 3.0]
@@ -393,12 +523,18 @@ func _get_elite_spawn_position() -> Vector2:
 
 
 func _spawn_demon_seal_reward(center_position: Vector2) -> void:
-	if experience_orb_scene == null:
+	var eff_experience_orb_scene: PackedScene
+	if stage_config != null and stage_config.experience_orb_scene != null:
+		eff_experience_orb_scene = stage_config.experience_orb_scene
+	else:
+		eff_experience_orb_scene = experience_orb_scene
+
+	if eff_experience_orb_scene == null:
 		push_warning("StageDirector has no experience_orb_scene.")
 		return
 
 	for index in demon_seal_reward_orb_count:
-		var orb_instance := experience_orb_scene.instantiate()
+		var orb_instance := eff_experience_orb_scene.instantiate()
 		if not orb_instance is ExperienceOrb:
 			push_error("StageDirector experience_orb_scene must instantiate an ExperienceOrb.")
 			orb_instance.queue_free()

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WavePoolConfig" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/wave_pool_config.gd" id="1_wpc_script"]
+[ext_resource type="Resource" path="res://resources/enemies/paper_doll.tres" id="2_paper_doll"]
+[ext_resource type="Resource" path="res://resources/enemies/wandering_soul.tres" id="3_wandering_soul"]
+[ext_resource type="Resource" path="res://resources/enemies/fox_spirit.tres" id="4_fox_spirit"]
+[ext_resource type="Resource" path="res://resources/enemies/ghost_flame.tres" id="5_ghost_flame"]
+[ext_resource type="Resource" path="res://resources/enemies/stone_golem.tres" id="6_stone_golem"]
+
+[resource]
+script = ExtResource("1_wpc_script")
+archetypes = [ExtResource("2_paper_doll"), ExtResource("3_wandering_soul"), ExtResource("4_fox_spirit"), ExtResource("5_ghost_flame"), ExtResource("6_stone_golem")]
+weights = [2.5, 2.4, 1.8, 1.4, 0.7]
