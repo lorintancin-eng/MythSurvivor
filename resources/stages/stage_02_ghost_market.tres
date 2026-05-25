@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="StageConfig" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="StageConfig" load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/system/stage_config.gd" id="1_stage_config_script"]
 [ext_resource type="PackedScene" path="res://scenes/system/DemonSeal.tscn" id="2_demon_seal_scene"]
@@ -8,6 +8,7 @@
 [ext_resource type="Resource" path="res://resources/stages/wave_pools/ghost_market_wave_2_pool.tres" id="6_wave_2_pool"]
 [ext_resource type="Resource" path="res://resources/stages/wave_pools/ghost_market_wave_3_pool.tres" id="7_wave_3_pool"]
 [ext_resource type="Resource" path="res://resources/stages/wave_pools/ghost_market_wave_4_pool.tres" id="8_wave_4_pool"]
+[ext_resource type="PackedScene" path="res://scenes/enemy/GhostJudgeBoss.tscn" id="9_ghost_judge_boss"]
 
 [resource]
 script = ExtResource("1_stage_config_script")
@@ -21,7 +22,7 @@ wave_boss_warning_start_time = 270.0
 wave_spawn_intervals = [1.5, 1.15, 0.95, 0.75, 0.6]
 wave_max_enemies = [16, 22, 30, 40, 52]
 wave_pools = [ExtResource("4_wave_0_pool"), ExtResource("5_wave_1_pool"), ExtResource("6_wave_2_pool"), ExtResource("7_wave_3_pool"), ExtResource("8_wave_4_pool")]
-boss_scene = null
+boss_scene = ExtResource("9_ghost_judge_boss")
 boss_warning_lead_time = 30.0
 boss_spawn_distance = 420.0
 boss_move_speed = 60.0

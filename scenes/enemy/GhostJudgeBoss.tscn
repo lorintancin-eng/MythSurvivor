@@ -1,0 +1,46 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy/ghost_judge_boss.gd" id="1_ghost_judge_script"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_boss_body"]
+radius = 22.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_boss_damage"]
+radius = 28.0
+
+[node name="GhostJudgeBoss" type="CharacterBody2D" groups=["bosses", "enemies"]]
+script = ExtResource("1_ghost_judge_script")
+max_hp = 320.0
+move_speed = 60.0
+damage = 18.0
+damage_interval = 0.8
+xp_drop_value = 0.0
+
+[node name="EnragedAura" type="Polygon2D" parent="."]
+visible = false
+color = Color(0.55, 0.1, 0.75, 0.32)
+polygon = PackedVector2Array(38, 0, 33.1028, 19, 19, 33.1028, 0, 38, -19, 33.1028, -33.1028, 19, -38, 0, -33.1028, -19, -19, -33.1028, 0, -38, 19, -33.1028, 33.1028, -19, 38, 0, 33.1028, 19)
+
+[node name="Body" type="Polygon2D" parent="."]
+scale = Vector2(1.7, 1.7)
+color = Color(0.35, 0.2, 0.5, 1)
+polygon = PackedVector2Array(0, -20, 14, -8, 18, 8, 7, 22, -7, 22, -18, 8, -14, -8)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_boss_body")
+
+[node name="DamageArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea"]
+shape = SubResource("CircleShape2D_boss_damage")
+
+[node name="HealthBar" type="Node2D" parent="."]
+position = Vector2(0, -52)
+
+[node name="Background" type="Polygon2D" parent="HealthBar"]
+color = Color(0.13, 0.08, 0.09, 1)
+polygon = PackedVector2Array(-15, -2.5, 15, -2.5, 15, 2.5, -15, 2.5)
+
+[node name="Fill" type="Polygon2D" parent="HealthBar"]
+color = Color(0.55, 0.1, 0.75, 1)
+polygon = PackedVector2Array(-14, -2, 14, -2, 14, 2, -14, 2)
