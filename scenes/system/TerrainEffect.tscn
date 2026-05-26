@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/terrain_effect.gd" id="1_terrain_effect_script"]
+
+[node name="TerrainEffect" type="Area2D"]
+script = ExtResource("1_terrain_effect_script")
+collision_layer = 0
+collision_mask = 1

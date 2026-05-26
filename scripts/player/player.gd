@@ -202,6 +202,7 @@ func _die() -> void:
 
 	_is_dead = true
 	velocity = Vector2.ZERO
+	_clear_terrain_effects()
 	died.emit()
 
 
@@ -840,3 +841,40 @@ func set_damage_multiplier(value: float) -> void:
 func _on_enemy_killed(enemy: Node) -> void:
 	if _character_base != null:
 		_character_base._on_kill(enemy)
+
+
+# ─────────────────────────────────────────────
+# v0.6 L003 G01: TerrainEffect 接口
+# ─────────────────────────────────────────────
+
+## 当前活跃的地形效果 {effect_type: bool}
+var _active_terrain_effects: Dictionary = {}
+
+const TERRAIN_SLOW_MULTIPLIER: float = 0.65
+
+
+## TerrainEffect 进入时调用
+func apply_terrain_effect(effect_type: int, _duration: float) -> void:
+	if _active_terrain_effects.has(effect_type):
+		return  # 已经有同类效果，避免叠加
+	_active_terrain_effects[effect_type] = true
+	# SLOW = 0（与 TerrainEffect.Type.SLOW 对齐）
+	if effect_type == 0:
+		_speed_multiplier *= TERRAIN_SLOW_MULTIPLIER
+
+
+## TerrainEffect 离开时调用（仅 SLOW 类型，BLINK 是一次性的）
+func remove_terrain_effect(effect_type: int) -> void:
+	if not _active_terrain_effects.has(effect_type):
+		return
+	_active_terrain_effects.erase(effect_type)
+	if effect_type == 0:
+		_speed_multiplier /= TERRAIN_SLOW_MULTIPLIER  # 还原
+
+
+## 死亡或重生时清除所有地形 buff（避免残留）
+func _clear_terrain_effects() -> void:
+	for effect_type in _active_terrain_effects.keys():
+		if effect_type == 0:
+			_speed_multiplier /= TERRAIN_SLOW_MULTIPLIER
+	_active_terrain_effects.clear()
