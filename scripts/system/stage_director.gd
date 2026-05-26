@@ -696,3 +696,8 @@ func _apply_config_values() -> void:
 	first_elite_spawn_time = eff_first_elite_spawn_time
 	second_elite_spawn_time = eff_second_elite_spawn_time
 	elite_spawn_distance = eff_elite_spawn_distance
+
+	# v0.5 补点：应用关卡主题色（L002 设计稿 §5.3）
+	# stage_config 未设置或缺少 background_color 时保持当前色（v0.2 兼容）
+	if stage_config != null and "background_color" in stage_config:
+		RenderingServer.set_default_clear_color(stage_config.background_color)

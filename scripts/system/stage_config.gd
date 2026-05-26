@@ -57,3 +57,9 @@ extends Resource
 ## 场景
 @export_group("Scenes")
 @export var experience_orb_scene: PackedScene
+
+## 视觉主题（v0.5 补点 — L002 设计稿 §5.3）
+## 关卡过渡时由 RenderingServer.set_default_clear_color 应用
+## L001 暗绿黑 / L002 紫黑 / L003 蓝黑（v0.6）
+@export_group("Theme")
+@export var background_color: Color = Color(0.08, 0.10, 0.06, 1.0)
