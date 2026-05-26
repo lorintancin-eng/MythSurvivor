@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="WavePoolConfig" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/wave_pool_config.gd" id="1_wpc_script"]
+[ext_resource type="Resource" path="res://resources/enemies/shanxiao_normal.tres" id="2_shanxiao_normal"]
+[ext_resource type="Resource" path="res://resources/enemies/dark_feather.tres" id="3_dark_feather"]
+[ext_resource type="Resource" path="res://resources/enemies/array_guardian.tres" id="4_array_guardian"]
+[ext_resource type="Resource" path="res://resources/enemies/serpent_spirit.tres" id="5_serpent_spirit"]
+
+[resource]
+script = ExtResource("1_wpc_script")
+archetypes = [ExtResource("2_shanxiao_normal"), ExtResource("3_dark_feather"), ExtResource("4_array_guardian"), ExtResource("5_serpent_spirit")]
+weights = [2.5, 2.8, 0.8, 1.0]

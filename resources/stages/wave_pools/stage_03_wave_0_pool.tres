@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WavePoolConfig" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/wave_pool_config.gd" id="1_wpc_script"]
+[ext_resource type="Resource" path="res://resources/enemies/shanxiao_normal.tres" id="2_shanxiao_normal"]
+[ext_resource type="Resource" path="res://resources/enemies/dark_feather.tres" id="3_dark_feather"]
+
+[resource]
+script = ExtResource("1_wpc_script")
+archetypes = [ExtResource("2_shanxiao_normal"), ExtResource("3_dark_feather")]
+weights = [3.0, 2.0]
