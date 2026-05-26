@@ -15,6 +15,7 @@ signal boss_died(elapsed_time: float)
 const DEFAULT_BOSS_SCENE: PackedScene = preload("res://scenes/enemy/FamineBeastBoss.tscn")
 const DEFAULT_DEMON_SEAL_SCENE: PackedScene = preload("res://scenes/system/DemonSeal.tscn")
 const DEFAULT_EXPERIENCE_ORB_SCENE: PackedScene = preload("res://scenes/system/ExperienceOrb.tscn")
+const VICTORY_PANEL_SCENE: PackedScene = preload("res://scenes/ui/VictoryPanel.tscn")
 const WANDERING_SOUL_ARCHETYPE: Resource = preload("res://resources/enemies/wandering_soul.tres")
 const PAPER_DOLL_ARCHETYPE: Resource = preload("res://resources/enemies/paper_doll.tres")
 const FOX_SPIRIT_ARCHETYPE: Resource = preload("res://resources/enemies/fox_spirit.tres")
@@ -527,6 +528,7 @@ func _setup_stage_transition() -> void:
 
 
 ## Boss 死亡后等待 1.5s，让玩家看到通关结算，再启动过渡
+## 若 next_stage_id 为空（最终关卡），则弹 VictoryPanel 而非过渡
 func _trigger_stage_transition_after_delay() -> void:
 	await get_tree().create_timer(1.5).timeout
 	var current_stage_id := "stage_01_huangshan"
@@ -534,11 +536,41 @@ func _trigger_stage_transition_after_delay() -> void:
 		current_stage_id = stage_config.stage_id
 	var next_stage_id := StageRegistry.get_next_stage_id(current_stage_id)
 	if next_stage_id == "":
+		# 最终关卡通关 — 弹 VictoryPanel
+		_show_victory_panel()
 		return
 	if _stage_transition != null and _stage_transition.has_method("start_transition"):
 		_stage_transition.start_transition(next_stage_id)
 	else:
 		push_warning("StageDirector: StageTransition not ready, skipping transition to %s" % next_stage_id)
+
+
+## 实例化通关结算面板并填入本局统计数据
+func _show_victory_panel() -> void:
+	if VICTORY_PANEL_SCENE == null:
+		push_warning("StageDirector: VICTORY_PANEL_SCENE is null, cannot show victory.")
+		return
+	var panel := VICTORY_PANEL_SCENE.instantiate()
+	get_parent().add_child(panel)
+	var kills: int = 0
+	if _enemy_spawner != null and "defeated_enemy_count" in _enemy_spawner:
+		kills = int(_enemy_spawner.defeated_enemy_count)
+	var level: int = 1
+	if _player != null and "level" in _player:
+		level = int(_player.level)
+	var char_name: String = ""
+	if _player != null and "_character_base" in _player:
+		var cb = _player._character_base
+		if cb != null and "display_name" in cb:
+			char_name = String(cb.display_name)
+	var stats := {
+		"elapsed_time": elapsed_time,
+		"kills": kills,
+		"level": level,
+		"character_name": char_name,
+	}
+	if panel.has_method("show_victory"):
+		panel.call("show_victory", stats)
 
 
 ## 过渡中点：清场 + 热切换到新关卡配置
