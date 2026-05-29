@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="WavePoolConfig" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/wave_pool_config.gd" id="1_wpc_script"]
+[ext_resource type="Resource" path="res://resources/enemies/hell_soldier.tres" id="2_hell_soldier"]
+[ext_resource type="Resource" path="res://resources/enemies/yin_cavalry.tres" id="3_yin_cavalry"]
+[ext_resource type="Resource" path="res://resources/enemies/hell_crossbow.tres" id="4_hell_crossbow"]
+[ext_resource type="Resource" path="res://resources/enemies/hell_guard.tres" id="5_hell_guard"]
+
+[resource]
+script = ExtResource("1_wpc_script")
+archetypes = [ExtResource("2_hell_soldier"), ExtResource("3_yin_cavalry"), ExtResource("4_hell_crossbow"), ExtResource("5_hell_guard")]
+weights = [2.5, 2.5, 1.0, 0.8]
