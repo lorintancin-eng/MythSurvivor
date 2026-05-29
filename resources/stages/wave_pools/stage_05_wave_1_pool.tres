@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="WavePoolConfig" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/wave_pool_config.gd" id="1_wpc_script"]
+[ext_resource type="Resource" path="res://resources/enemies/fire_spirit.tres" id="2_fire_spirit"]
+[ext_resource type="Resource" path="res://resources/enemies/flame_serpent.tres" id="3_flame_serpent"]
+[ext_resource type="Resource" path="res://resources/enemies/flame_archer.tres" id="4_flame_archer"]
+[ext_resource type="Resource" path="res://resources/enemies/banana_leaf_demon.tres" id="5_banana_leaf_demon"]
+
+[resource]
+script = ExtResource("1_wpc_script")
+archetypes = [ExtResource("2_fire_spirit"), ExtResource("3_flame_serpent"), ExtResource("4_flame_archer"), ExtResource("5_banana_leaf_demon")]
+weights = [2.5, 2.0, 1.0, 1.0]

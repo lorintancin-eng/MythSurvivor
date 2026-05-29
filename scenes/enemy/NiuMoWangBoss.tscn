@@ -1,0 +1,52 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy/niu_mo_wang_boss.gd" id="1_niu_mo_wang_boss_script"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_boss_body"]
+radius = 28.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_boss_damage"]
+radius = 36.0
+
+[node name="NiuMoWangBoss" type="CharacterBody2D" groups=["bosses", "enemies"]]
+script = ExtResource("1_niu_mo_wang_boss_script")
+max_hp = 660.0
+move_speed = 65.0
+damage = 28.0
+damage_interval = 0.8
+xp_drop_value = 0.0
+
+[node name="EnragedAura" type="Polygon2D" parent="."]
+visible = false
+color = Color(1.0, 0.4, 0.05, 0.28)
+polygon = PackedVector2Array(60, 0, 51.96, 30.0, 30.0, 51.96, 0, 60, -30.0, 51.96, -51.96, 30.0, -60, 0, -51.96, -30.0, -30.0, -51.96, 0, -60, 30.0, -51.96, 51.96, -30.0, 60, 0)
+
+[node name="Body" type="Polygon2D" parent="."]
+scale = Vector2(2.4, 2.4)
+color = Color(0.8, 0.25, 0.05, 1)
+polygon = PackedVector2Array(0, -20, 15, -8, 18, 8, 7, 22, -7, 22, -18, 8, -15, -8)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_boss_body")
+
+[node name="DamageArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea"]
+shape = SubResource("CircleShape2D_boss_damage")
+
+[node name="ChargeTelegraph" type="Line2D" parent="."]
+visible = false
+width = 10.0
+default_color = Color(1.0, 0.15, 0.05, 0.75)
+points = PackedVector2Array(0, 0, 280, 0)
+
+[node name="HealthBar" type="Node2D" parent="."]
+position = Vector2(0, -72)
+
+[node name="Background" type="Polygon2D" parent="HealthBar"]
+color = Color(0.08, 0.05, 0.05, 1)
+polygon = PackedVector2Array(-22, -3.5, 22, -3.5, 22, 3.5, -22, 3.5)
+
+[node name="Fill" type="Polygon2D" parent="HealthBar"]
+color = Color(0.9, 0.25, 0.05, 1)
+polygon = PackedVector2Array(-21, -3, 21, -3, 21, 3, -21, 3)
