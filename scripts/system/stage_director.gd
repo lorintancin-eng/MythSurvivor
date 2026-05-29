@@ -95,6 +95,9 @@ var _stage_transition: Node = null
 
 func _ready() -> void:
 	_rng.randomize()
+	# GAP-03：Main.tscn 未绑定 stage_config 时，自动加载首关（数据驱动而非 v0.2 fallback）
+	if stage_config == null:
+		stage_config = StageRegistry.get_stage(StageRegistry.get_first_stage_id())
 	_apply_config_values()
 
 	_player = get_node_or_null(player_path) as Player
@@ -105,6 +108,7 @@ func _ready() -> void:
 
 	stage_time_changed.emit(elapsed_time, stage_duration)
 	_setup_stage_transition()
+	_spawn_terrain_objects()
 
 
 func _process(delta: float) -> void:
@@ -624,6 +628,9 @@ func load_stage_config(new_config: StageConfig) -> void:
 	if _player != null and _player.has_method("on_stage_transition"):
 		_player.call("on_stage_transition")
 
+	# GAP-01/02：spawn 新关地形效果 + 可破坏物件
+	_spawn_terrain_objects()
+
 
 ## 清场：销毁所有敌人 / 经验球 / 镇妖碑
 func _clear_active_objects() -> void:
@@ -639,6 +646,81 @@ func _clear_active_objects() -> void:
 	if is_instance_valid(_demon_seal):
 		_demon_seal.queue_free()
 	_demon_seal = null
+	# GAP-01/02：清理地形效果 + 可破坏物件（切关时移除上一关的）
+	for te in get_tree().get_nodes_in_group("terrain_effects"):
+		if is_instance_valid(te):
+			te.queue_free()
+	for br in get_tree().get_nodes_in_group("breakables"):
+		if is_instance_valid(br):
+			br.queue_free()
+
+
+## GAP-01/02：spawn 地形效果 + 可破坏物件（由 _ready 末尾 + load_stage_config 末尾调用）
+func _spawn_terrain_objects() -> void:
+	if stage_config == null:
+		return
+	_spawn_terrain_effects()
+	_spawn_breakables()
+
+
+func _spawn_terrain_effects() -> void:
+	var scene: PackedScene = stage_config.terrain_effect_scene
+	var count: int = stage_config.terrain_effect_count
+	if scene == null or count <= 0:
+		return
+	var parent := _get_spawn_parent()
+	var origin := _get_spawn_origin()
+	for i in range(count):
+		var inst := scene.instantiate()
+		if inst == null:
+			continue
+		# 设置 effect_type（安全读取 types 数组，越界默认 0=SLOW）
+		var effect_type := 0
+		if i < stage_config.terrain_effect_types.size():
+			effect_type = stage_config.terrain_effect_types[i]
+		if "effect_type" in inst:
+			inst.effect_type = effect_type
+		parent.add_child(inst)
+		if inst is Node2D:
+			(inst as Node2D).global_position = _get_scattered_position(
+				origin,
+				stage_config.terrain_effect_min_spawn_distance,
+				stage_config.terrain_effect_max_spawn_distance
+			)
+
+
+func _spawn_breakables() -> void:
+	var scene: PackedScene = stage_config.breakable_scene
+	var count: int = stage_config.breakable_count
+	if scene == null or count <= 0:
+		return
+	var parent := _get_spawn_parent()
+	var origin := _get_spawn_origin()
+	for i in range(count):
+		var inst := scene.instantiate()
+		if inst == null:
+			continue
+		parent.add_child(inst)
+		if inst is Node2D:
+			(inst as Node2D).global_position = _get_scattered_position(
+				origin,
+				stage_config.breakable_min_spawn_distance,
+				stage_config.breakable_max_spawn_distance
+			)
+
+
+## 以 origin 为圆心，随机角度 + 随机半径散布
+func _get_scattered_position(origin: Vector2, min_dist: float, max_dist: float) -> Vector2:
+	var angle := _rng.randf() * TAU
+	var dist := _rng.randf_range(min_dist, max_dist)
+	return origin + Vector2.RIGHT.rotated(angle) * dist
+
+
+## spawn 圆心：玩家位置（_ready 时玩家在出生点；load_stage_config 时玩家在上关末位置）
+func _get_spawn_origin() -> Vector2:
+	if _player != null and is_instance_valid(_player):
+		return _player.global_position
+	return Vector2.ZERO
 
 
 ## 把 _ready 中所有 eff_* 计算 + 写回 @export 字段的逻辑提取到此函数

@@ -32,6 +32,7 @@ var _draw_pulse_phase: float = 0.0
 
 
 func _ready() -> void:
+	add_to_group("terrain_effects")
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
 	# 设置碰撞 shape

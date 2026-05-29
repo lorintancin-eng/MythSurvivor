@@ -63,3 +63,19 @@ extends Resource
 ## L001 暗绿黑 / L002 紫黑 / L003 蓝黑（v0.6）
 @export_group("Theme")
 @export var background_color: Color = Color(0.08, 0.10, 0.06, 1.0)
+
+## 地形效果（L003 G01；count=0 = 不 spawn，L001/L002 留 0）
+@export_group("Terrain")
+@export var terrain_effect_scene: PackedScene
+@export var terrain_effect_count: int = 0
+## 每个地形的类型（0=SLOW, 1=BLINK），与 count 等长；空数组则全 SLOW
+@export var terrain_effect_types: Array[int] = []
+@export var terrain_effect_min_spawn_distance: float = 200.0
+@export var terrain_effect_max_spawn_distance: float = 600.0
+
+## 可破坏物件（L003 G02；count=0 = 不 spawn）
+@export_group("Breakables")
+@export var breakable_scene: PackedScene
+@export var breakable_count: int = 0
+@export var breakable_min_spawn_distance: float = 180.0
+@export var breakable_max_spawn_distance: float = 500.0

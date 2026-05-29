@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="StageConfig" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="StageConfig" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/system/stage_config.gd" id="1_stage_config_script"]
 [ext_resource type="PackedScene" path="res://scenes/system/DemonSeal.tscn" id="2_demon_seal_scene"]
@@ -9,6 +9,8 @@
 [ext_resource type="Resource" path="res://resources/stages/wave_pools/stage_03_wave_3_pool.tres" id="7_wave_3_pool"]
 [ext_resource type="Resource" path="res://resources/stages/wave_pools/stage_03_wave_4_pool.tres" id="8_wave_4_pool"]
 [ext_resource type="PackedScene" path="res://scenes/enemy/LiepingShanjunBoss.tscn" id="9_lieping_shanjun_boss"]
+[ext_resource type="PackedScene" path="res://scenes/system/TerrainEffect.tscn" id="10_terrain_effect_scene"]
+[ext_resource type="PackedScene" path="res://scenes/system/BreakableObject.tscn" id="11_breakable_scene"]
 
 [resource]
 script = ExtResource("1_stage_config_script")
@@ -46,3 +48,12 @@ second_elite_spawn_time = 240.0
 elite_spawn_distance = 420.0
 experience_orb_scene = ExtResource("3_experience_orb_scene")
 background_color = Color(0.04, 0.08, 0.14, 1)
+terrain_effect_scene = ExtResource("10_terrain_effect_scene")
+terrain_effect_count = 6
+terrain_effect_types = [0, 0, 0, 1, 1, 1]
+terrain_effect_min_spawn_distance = 200.0
+terrain_effect_max_spawn_distance = 600.0
+breakable_scene = ExtResource("11_breakable_scene")
+breakable_count = 4
+breakable_min_spawn_distance = 180.0
+breakable_max_spawn_distance = 500.0
