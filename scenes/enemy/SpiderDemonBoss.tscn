@@ -1,0 +1,46 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy/spider_demon_boss.gd" id="1_spider_demon_boss_script"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_boss_body"]
+radius = 28.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_boss_damage"]
+radius = 36.0
+
+[node name="SpiderDemonBoss" type="CharacterBody2D" groups=["bosses", "enemies"]]
+script = ExtResource("1_spider_demon_boss_script")
+max_hp = 780.0
+move_speed = 60.0
+damage = 26.0
+damage_interval = 0.8
+xp_drop_value = 0.0
+
+[node name="EnragedAura" type="Polygon2D" parent="."]
+visible = false
+color = Color(0.2, 0.55, 0.15, 0.28)
+polygon = PackedVector2Array(70, 0, 60.62, 35, 35, 60.62, 0, 70, -35, 60.62, -60.62, 35, -70, 0, -60.62, -35, -35, -60.62, 0, -70, 35, -60.62, 60.62, -35, 70, 0)
+
+[node name="Body" type="Polygon2D" parent="."]
+scale = Vector2(2.3, 2.3)
+color = Color(0.45, 0.2, 0.55, 1)
+polygon = PackedVector2Array(0, -20, 14, -8, 17, 8, 6, 22, -6, 22, -17, 8, -14, -8)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_boss_body")
+
+[node name="DamageArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea"]
+shape = SubResource("CircleShape2D_boss_damage")
+
+[node name="HealthBar" type="Node2D" parent="."]
+position = Vector2(0, -76)
+
+[node name="Background" type="Polygon2D" parent="HealthBar"]
+color = Color(0.05, 0.03, 0.08, 1)
+polygon = PackedVector2Array(-22, -3.5, 22, -3.5, 22, 3.5, -22, 3.5)
+
+[node name="Fill" type="Polygon2D" parent="HealthBar"]
+color = Color(0.5, 0.2, 0.65, 1)
+polygon = PackedVector2Array(-21, -3, 21, -3, 21, 3, -21, 3)

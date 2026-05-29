@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WavePoolConfig" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/wave_pool_config.gd" id="1_wpc_script"]
+[ext_resource type="Resource" path="res://resources/enemies/poison_spider.tres" id="2_poison_spider"]
+[ext_resource type="Resource" path="res://resources/enemies/jumping_spider.tres" id="3_jumping_spider"]
+[ext_resource type="Resource" path="res://resources/enemies/web_demon.tres" id="4_web_demon"]
+[ext_resource type="Resource" path="res://resources/enemies/spider_queen.tres" id="5_spider_queen"]
+[ext_resource type="Resource" path="res://resources/enemies/cocoon_demon.tres" id="6_cocoon_demon"]
+
+[resource]
+script = ExtResource("1_wpc_script")
+archetypes = [ExtResource("2_poison_spider"), ExtResource("3_jumping_spider"), ExtResource("4_web_demon"), ExtResource("5_spider_queen"), ExtResource("6_cocoon_demon")]
+weights = [2.0, 2.0, 1.5, 0.8, 0.6]

@@ -1,0 +1,36 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy/spider_queen.gd" id="1_spider_queen_script"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 12.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_damage_area"]
+radius = 16.0
+
+[node name="SpiderQueen" type="CharacterBody2D" groups=["enemies"]]
+script = ExtResource("1_spider_queen_script")
+
+[node name="Body" type="Polygon2D" parent="."]
+scale = Vector2(1.1, 1.1)
+color = Color(0.45, 0.2, 0.55, 1)
+polygon = PackedVector2Array(0, -16, 12, -5, 13, 7, 0, 17, -13, 7, -12, -5)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")
+
+[node name="DamageArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea"]
+shape = SubResource("CircleShape2D_damage_area")
+
+[node name="HealthBar" type="Node2D" parent="."]
+position = Vector2(0, -26)
+
+[node name="Background" type="Polygon2D" parent="HealthBar"]
+color = Color(0.07, 0.04, 0.09, 1)
+polygon = PackedVector2Array(-15, -2.5, 15, -2.5, 15, 2.5, -15, 2.5)
+
+[node name="Fill" type="Polygon2D" parent="HealthBar"]
+color = Color(0.55, 0.3, 0.7, 1)
+polygon = PackedVector2Array(-14, -2, 14, -2, 14, 2, -14, 2)

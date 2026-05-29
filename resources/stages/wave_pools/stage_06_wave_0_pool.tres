@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WavePoolConfig" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/wave_pool_config.gd" id="1_wpc_script"]
+[ext_resource type="Resource" path="res://resources/enemies/poison_spider.tres" id="2_poison_spider"]
+[ext_resource type="Resource" path="res://resources/enemies/jumping_spider.tres" id="3_jumping_spider"]
+
+[resource]
+script = ExtResource("1_wpc_script")
+archetypes = [ExtResource("2_poison_spider"), ExtResource("3_jumping_spider")]
+weights = [3.0, 2.0]
