@@ -1,0 +1,46 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy/yellow_wind_boss.gd" id="1_yellow_wind_boss_script"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_boss_body"]
+radius = 26.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_boss_damage"]
+radius = 34.0
+
+[node name="YellowWindBoss" type="CharacterBody2D" groups=["bosses", "enemies"]]
+script = ExtResource("1_yellow_wind_boss_script")
+max_hp = 900.0
+move_speed = 70.0
+damage = 30.0
+damage_interval = 0.8
+xp_drop_value = 0.0
+
+[node name="EnragedAura" type="Polygon2D" parent="."]
+visible = false
+color = Color(0.95, 0.8, 0.2, 0.28)
+polygon = PackedVector2Array(50, 0, 43.3, 25.0, 25.0, 43.3, 0, 50, -25.0, 43.3, -43.3, 25.0, -50, 0, -43.3, -25.0, -25.0, -43.3, 0, -50, 25.0, -43.3, 43.3, -25.0, 50, 0)
+
+[node name="Body" type="Polygon2D" parent="."]
+scale = Vector2(2.2, 2.2)
+color = Color(0.82, 0.68, 0.18, 1)
+polygon = PackedVector2Array(0, -20, 14, -8, 18, 8, 7, 22, -7, 22, -18, 8, -14, -8)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_boss_body")
+
+[node name="DamageArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea"]
+shape = SubResource("CircleShape2D_boss_damage")
+
+[node name="HealthBar" type="Node2D" parent="."]
+position = Vector2(0, -65)
+
+[node name="Background" type="Polygon2D" parent="HealthBar"]
+color = Color(0.08, 0.08, 0.12, 1)
+polygon = PackedVector2Array(-20, -3.5, 20, -3.5, 20, 3.5, -20, 3.5)
+
+[node name="Fill" type="Polygon2D" parent="HealthBar"]
+color = Color(0.92, 0.76, 0.18, 1)
+polygon = PackedVector2Array(-19, -3, 19, -3, 19, 3, -19, 3)

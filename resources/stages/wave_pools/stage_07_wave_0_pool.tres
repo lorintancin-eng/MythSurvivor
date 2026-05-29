@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WavePoolConfig" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/wave_pool_config.gd" id="1_wpc_script"]
+[ext_resource type="Resource" path="res://resources/enemies/sand_demon.tres" id="2_sand_demon"]
+[ext_resource type="Resource" path="res://resources/enemies/bone_wraith.tres" id="3_bone_wraith"]
+
+[resource]
+script = ExtResource("1_wpc_script")
+archetypes = [ExtResource("2_sand_demon"), ExtResource("3_bone_wraith")]
+weights = [3.0, 2.0]

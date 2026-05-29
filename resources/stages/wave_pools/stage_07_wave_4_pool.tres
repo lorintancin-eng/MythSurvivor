@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WavePoolConfig" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/wave_pool_config.gd" id="1_wpc_script"]
+[ext_resource type="Resource" path="res://resources/enemies/sand_demon.tres" id="2_sand_demon"]
+[ext_resource type="Resource" path="res://resources/enemies/whirlwind_spirit.tres" id="3_whirlwind_spirit"]
+[ext_resource type="Resource" path="res://resources/enemies/yellow_wind_archer.tres" id="4_yellow_wind_archer"]
+
+[resource]
+script = ExtResource("1_wpc_script")
+archetypes = [ExtResource("2_sand_demon"), ExtResource("3_whirlwind_spirit"), ExtResource("4_yellow_wind_archer")]
+weights = [2.0, 2.5, 1.5]
