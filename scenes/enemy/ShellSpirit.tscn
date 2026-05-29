@@ -1,0 +1,35 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy/shell_spirit.gd" id="1_shell_spirit_script"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 11.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_damage_area"]
+radius = 15.0
+
+[node name="ShellSpirit" type="CharacterBody2D" groups=["enemies"]]
+script = ExtResource("1_shell_spirit_script")
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.7, 0.7, 0.8, 1)
+polygon = PackedVector2Array(0, -16, 11, -6, 13, 5, 6, 15, 0, 17, -6, 15, -13, 5, -11, -6)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")
+
+[node name="DamageArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea"]
+shape = SubResource("CircleShape2D_damage_area")
+
+[node name="HealthBar" type="Node2D" parent="."]
+position = Vector2(0, -24)
+
+[node name="Background" type="Polygon2D" parent="HealthBar"]
+color = Color(0.10, 0.10, 0.14, 1)
+polygon = PackedVector2Array(-15, -2.5, 15, -2.5, 15, 2.5, -15, 2.5)
+
+[node name="Fill" type="Polygon2D" parent="HealthBar"]
+color = Color(0.65, 0.7, 0.85, 1)
+polygon = PackedVector2Array(-14, -2, 14, -2, 14, 2, -14, 2)

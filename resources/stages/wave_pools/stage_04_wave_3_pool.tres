@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WavePoolConfig" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/wave_pool_config.gd" id="1_wpc_script"]
+[ext_resource type="Resource" path="res://resources/enemies/lobster_guard.tres" id="2_lobster_guard"]
+[ext_resource type="Resource" path="res://resources/enemies/water_ghost.tres" id="3_water_ghost"]
+[ext_resource type="Resource" path="res://resources/enemies/dragon_crossbow.tres" id="4_dragon_crossbow"]
+[ext_resource type="Resource" path="res://resources/enemies/shell_spirit.tres" id="5_shell_spirit"]
+[ext_resource type="Resource" path="res://resources/enemies/dragon_sinew.tres" id="6_dragon_sinew"]
+
+[resource]
+script = ExtResource("1_wpc_script")
+archetypes = [ExtResource("2_lobster_guard"), ExtResource("3_water_ghost"), ExtResource("4_dragon_crossbow"), ExtResource("5_shell_spirit"), ExtResource("6_dragon_sinew")]
+weights = [2.0, 2.0, 1.5, 1.0, 0.8]
