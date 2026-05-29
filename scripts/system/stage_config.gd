@@ -68,7 +68,7 @@ extends Resource
 @export_group("Terrain")
 @export var terrain_effect_scene: PackedScene
 @export var terrain_effect_count: int = 0
-## 每个地形的类型（0=SLOW, 1=BLINK），与 count 等长；空数组则全 SLOW
+## 每个地形的类型（0=SLOW 1=BLINK 2=BURN 3=SNARE 4=CURSE），与 count 等长；空数组则全 SLOW
 @export var terrain_effect_types: Array[int] = []
 @export var terrain_effect_min_spawn_distance: float = 200.0
 @export var terrain_effect_max_spawn_distance: float = 600.0
@@ -79,3 +79,7 @@ extends Resource
 @export var breakable_count: int = 0
 @export var breakable_min_spawn_distance: float = 180.0
 @export var breakable_max_spawn_distance: float = 500.0
+
+## 出怪视口缩减因子（L004+ 多路线关卡用；默认 1.0 = 全视口，L001-L003 无影响）
+@export_group("Spawner")
+@export var viewport_reduction_factor: float = 1.0

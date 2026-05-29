@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/water_flow_zone.gd" id="1_water_flow_zone_script"]
+
+[sub_resource type="RectangleShape2D" id="1_rect_shape"]
+size = Vector2(160, 80)
+
+[node name="WaterFlowZone" type="Area2D"]
+script = ExtResource("1_water_flow_zone_script")
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1_rect_shape")

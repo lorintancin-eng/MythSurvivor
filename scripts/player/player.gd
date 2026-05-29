@@ -113,17 +113,28 @@ func _ready() -> void:
 		spawner.enemy_killed.connect(_on_enemy_killed)
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if _is_dead:
 		velocity = Vector2.ZERO
 		return
 
 	var input_direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = input_direction * move_speed * _speed_multiplier
+	# _terrain_speed_factor：地形减速/定身因子（独立于 _speed_multiplier，不影响七十二变）
+	# _water_push_velocity：水流区域推力（WaterFlowZone 叠加，自然衰减）
+	velocity = input_direction * move_speed * _speed_multiplier * _terrain_speed_factor + _water_push_velocity
+	# 水流推力指数衰减（远离水流区后自然停止）
+	_water_push_velocity = _water_push_velocity.lerp(Vector2.ZERO, delta * WATER_PUSH_DECAY)
 	move_and_slide()
 	# W205: 更新玩家朝向（非零输入时）
 	if input_direction != Vector2.ZERO:
 		facing = input_direction.normalized()
+
+	# BURN DOT：每 BURN_TICK_INTERVAL 秒造成一次伤害
+	if _active_terrain_effects.has(TerrainEffect.Type.BURN):
+		_burn_tick_timer += delta
+		if _burn_tick_timer >= BURN_TICK_INTERVAL:
+			_burn_tick_timer -= BURN_TICK_INTERVAL
+			take_damage(_burn_dps * BURN_TICK_INTERVAL)
 
 
 func take_damage(amount: float) -> void:
@@ -141,7 +152,7 @@ func gain_experience(amount: float) -> void:
 	if _is_dead or amount <= 0.0:
 		return
 
-	current_xp += amount * maxf(xp_gain_multiplier, 0.0)
+	current_xp += amount * maxf(xp_gain_multiplier, 0.0) * maxf(_xp_multiplier, 0.0)
 	var levels_gained := 0
 	while current_xp >= xp_to_next_level:
 		current_xp -= xp_to_next_level
@@ -1036,34 +1047,84 @@ func _on_enemy_killed(enemy: Node) -> void:
 ## 当前活跃的地形效果 {effect_type: bool}
 var _active_terrain_effects: Dictionary = {}
 
+## 独立地形移速因子（不碰 _speed_multiplier，避免与七十二变 buff 冲突）
+var _terrain_speed_factor: float = 1.0
+
+## XP 倍率（CURSE 地形应用时降至 0.70，离开恢复 1.0）
+var _xp_multiplier: float = 1.0
+
+## 水流推送速度（由 WaterFlowZone 每帧叠加，自然衰减至 0）
+var _water_push_velocity: Vector2 = Vector2.ZERO
+
+## BURN DOT 参数
+var _burn_dps: float = 6.0
+var _burn_tick_timer: float = 0.0
+
 const TERRAIN_SLOW_MULTIPLIER: float = 0.65
+const WATER_PUSH_DECAY: float = 3.0
+const BURN_TICK_INTERVAL: float = 0.5
+
+
+## 地形移速重算（每次 apply/remove 地形效果后调用）
+## SNARE 优先级最高（完全定身），其次 SLOW（0.65），否则 1.0
+func _recompute_terrain_speed() -> void:
+	if _active_terrain_effects.has(TerrainEffect.Type.SNARE):
+		_terrain_speed_factor = 0.0
+	elif _active_terrain_effects.has(TerrainEffect.Type.SLOW):
+		_terrain_speed_factor = TERRAIN_SLOW_MULTIPLIER
+	else:
+		_terrain_speed_factor = 1.0
 
 
 ## TerrainEffect 进入时调用
-func apply_terrain_effect(effect_type: int, _duration: float) -> void:
+## effect_type: TerrainEffect.Type 枚举整数值
+## burn_dps_override: BURN 类型专用（地形 TerrainEffect 传入的伤害值）
+func apply_terrain_effect(effect_type: int, _duration: float, burn_dps_override: float = -1.0) -> void:
 	if _active_terrain_effects.has(effect_type):
 		return  # 已经有同类效果，避免叠加
 	_active_terrain_effects[effect_type] = true
-	# SLOW = 0（与 TerrainEffect.Type.SLOW 对齐）
-	if effect_type == 0:
-		_speed_multiplier *= TERRAIN_SLOW_MULTIPLIER
+	match effect_type:
+		TerrainEffect.Type.SLOW:
+			_recompute_terrain_speed()
+		TerrainEffect.Type.SNARE:
+			_recompute_terrain_speed()
+		TerrainEffect.Type.BURN:
+			if burn_dps_override >= 0.0:
+				_burn_dps = burn_dps_override
+			_burn_tick_timer = 0.0
+		TerrainEffect.Type.CURSE:
+			_xp_multiplier = 0.70
+		# BLINK 是一次性触发，不走此路径（TerrainEffect 直接调 _do_blink）
 
 
-## TerrainEffect 离开时调用（仅 SLOW 类型，BLINK 是一次性的）
+## TerrainEffect 离开时调用（BLINK 是一次性的，不需要 remove）
 func remove_terrain_effect(effect_type: int) -> void:
 	if not _active_terrain_effects.has(effect_type):
 		return
 	_active_terrain_effects.erase(effect_type)
-	if effect_type == 0:
-		_speed_multiplier /= TERRAIN_SLOW_MULTIPLIER  # 还原
+	match effect_type:
+		TerrainEffect.Type.SLOW:
+			_recompute_terrain_speed()
+		TerrainEffect.Type.SNARE:
+			_recompute_terrain_speed()
+		TerrainEffect.Type.BURN:
+			_burn_tick_timer = 0.0
+		TerrainEffect.Type.CURSE:
+			_xp_multiplier = 1.0
 
 
 ## 死亡或重生时清除所有地形 buff（避免残留）
 func _clear_terrain_effects() -> void:
-	for effect_type in _active_terrain_effects.keys():
-		if effect_type == 0:
-			_speed_multiplier /= TERRAIN_SLOW_MULTIPLIER
 	_active_terrain_effects.clear()
+	_terrain_speed_factor = 1.0
+	_xp_multiplier = 1.0
+	_burn_tick_timer = 0.0
+	_water_push_velocity = Vector2.ZERO
+
+
+## 由 WaterFlowZone 每帧调用，叠加水流推力
+func apply_water_push(force: Vector2) -> void:
+	_water_push_velocity += force
 
 
 ## GAP-06：跨关卡过渡时调用（由 StageDirector.load_stage_config 触发）

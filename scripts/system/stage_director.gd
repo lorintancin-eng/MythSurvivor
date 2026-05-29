@@ -539,8 +539,9 @@ func _trigger_stage_transition_after_delay() -> void:
 	if stage_config != null and stage_config.stage_id != "":
 		current_stage_id = stage_config.stage_id
 	var next_stage_id := StageRegistry.get_next_stage_id(current_stage_id)
-	if next_stage_id == "":
-		# 最终关卡通关 — 弹 VictoryPanel
+	# 最终关卡通关（next 为空），或 next 关卡配置尚未实装（.tres 不存在） → 弹 VictoryPanel
+	# 这样关卡链可渐进生效：做完一关，过渡自动延伸到下一关
+	if next_stage_id == "" or StageRegistry.get_stage(next_stage_id) == null:
 		_show_victory_panel()
 		return
 	if _stage_transition != null and _stage_transition.has_method("start_transition"):
@@ -815,3 +816,10 @@ func _apply_config_values() -> void:
 	# stage_config 未设置或缺少 background_color 时保持当前色（v0.2 兼容）
 	if stage_config != null and "background_color" in stage_config:
 		RenderingServer.set_default_clear_color(stage_config.background_color)
+
+	# v0.7：viewport_reduction_factor 写入 EnemySpawner（默认 1.0 = L001-L003 行为不变）
+	if _enemy_spawner != null and "viewport_reduction_factor" in _enemy_spawner:
+		var eff_vrf: float = 1.0
+		if stage_config != null and "viewport_reduction_factor" in stage_config:
+			eff_vrf = maxf(stage_config.viewport_reduction_factor, 0.1)
+		_enemy_spawner.viewport_reduction_factor = eff_vrf

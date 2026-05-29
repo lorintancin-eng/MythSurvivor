@@ -20,6 +20,9 @@ const GHOST_FLAME_ARCHETYPE: Resource = preload("res://resources/enemies/ghost_f
 @export var spawn_margin: float = 80.0
 @export var random_seed: int = 1301
 @export var is_spawning_enabled: bool = true
+## 视口缩减因子（1.0 = 使用全视口半尺寸；< 1.0 = 在更小范围内 spawn，用于多路线关卡）
+## L001-L003 默认 1.0 不变；L004+ 可在 stage_config 中设置
+@export var viewport_reduction_factor: float = 1.0
 
 var current_enemy_count: int = 0
 var defeated_enemy_count: int = 0
@@ -205,7 +208,7 @@ func _get_spawn_position(player_position: Vector2) -> Vector2:
 	if camera != null:
 		camera_zoom = camera.zoom
 
-	var half_visible_size := viewport_size * 0.5 / camera_zoom
+	var half_visible_size := viewport_size * 0.5 / camera_zoom * maxf(viewport_reduction_factor, 0.1)
 	var side := _rng.randi_range(0, 3)
 	var offset := Vector2.ZERO
 
