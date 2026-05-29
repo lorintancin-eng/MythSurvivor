@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player_script"]
 [ext_resource type="Script" path="res://scripts/weapon/nezha/fire_spear_weapon.gd" id="2_fire_spear_script"]
 [ext_resource type="Script" path="res://scripts/character/nezha.gd" id="3_nezha_script"]
+[ext_resource type="Script" path="res://scripts/weapon/nezha/hun_tian_ling_weapon.gd" id="4_hun_tian_ling_script"]
+[ext_resource type="Script" path="res://scripts/weapon/nezha/qian_kun_circle_weapon.gd" id="5_qian_kun_script"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player_body"]
 radius = 12.0
@@ -34,6 +36,14 @@ script = ExtResource("2_fire_spear_script")
 [node name="Camera2D" type="Camera2D" parent="."]
 enabled = true
 zoom = Vector2(1.15, 1.15)
+
+[node name="HunTianLingWeapon" type="Node2D" parent="."]
+process_mode = 4
+script = ExtResource("4_hun_tian_ling_script")
+
+[node name="QianKunCircleWeapon" type="Node2D" parent="."]
+process_mode = 4
+script = ExtResource("5_qian_kun_script")
 
 [node name="CharacterBase" type="Node" parent="."]
 script = ExtResource("3_nezha_script")

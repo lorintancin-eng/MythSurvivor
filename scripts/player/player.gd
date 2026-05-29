@@ -548,6 +548,39 @@ func _get_upgrade_pool() -> Array[Dictionary]:
 			"description": "凝出重印镇落，压制大片妖物。"
 		})
 
+	# N05: 哪吒专属升级池（仅在 character_base 是 Nezha 时添加）
+	if _character_base is Nezha:
+		var nezha_char := _character_base as Nezha
+
+		# 火尖枪强化（始终可选）
+		var fire_spear_node := get_node_or_null("FireSpearWeapon")
+		if fire_spear_node != null:
+			pool.append({"id": "nezha_fire_spear_damage", "title": "火尖枪·破 +4", "description": "火尖枪每次命中伤害提高 4。"})
+			pool.append({"id": "nezha_fire_spear_cooldown", "title": "火尖枪·疾 -10%", "description": "火尖枪发射间隔缩短 10%。"})
+			pool.append({"id": "nezha_fire_spear_burn", "title": "火尖枪·炎 +3/s", "description": "火尖枪灼烧每秒伤害提高 3。"})
+
+		# 混天绫：未解锁则显示解锁项，已解锁显示强化项
+		var htl_node := get_node_or_null("HunTianLingWeapon")
+		if htl_node == null or htl_node.process_mode == Node.PROCESS_MODE_DISABLED:
+			pool.append({"id": "nezha_unlock_hun_tian_ling", "title": "混天绫·觉醒", "description": "解锁混天绫，以环形光带减速并灼烧周围敌人。"})
+		else:
+			pool.append({"id": "nezha_hun_tian_ling_radius", "title": "混天绫·扩 +20", "description": "混天绫范围扩大 20。"})
+			pool.append({"id": "nezha_hun_tian_ling_dot", "title": "混天绫·灼 +2/s", "description": "混天绫持续灼烧每秒伤害提高 2。"})
+			pool.append({"id": "nezha_hun_tian_ling_cooldown", "title": "混天绫·旋 -10%", "description": "混天绫旋转间隔缩短 10%。"})
+
+		# 乾坤圈：未解锁则显示解锁项，已解锁显示强化项
+		var qkc_node := get_node_or_null("QianKunCircleWeapon")
+		if qkc_node == null or qkc_node.process_mode == Node.PROCESS_MODE_DISABLED:
+			pool.append({"id": "nezha_unlock_qian_kun", "title": "乾坤圈·觉醒", "description": "解锁乾坤圈，发射回旋镖锁敌折返双段伤害。"})
+		else:
+			pool.append({"id": "nezha_qian_kun_damage", "title": "乾坤圈·破 +5", "description": "乾坤圈每段命中伤害提高 5。"})
+			pool.append({"id": "nezha_qian_kun_cooldown", "title": "乾坤圈·疾 -10%", "description": "乾坤圈发射间隔缩短 10%。"})
+
+		# 三昧真火强化
+		pool.append({"id": "nezha_true_fire_charge", "title": "三昧真火·蓄", "description": "受伤时三昧真火充能由 10 提高到 15。"})
+		if nezha_char.fire_burst_range_mult < 2.2:
+			pool.append({"id": "nezha_true_fire_burst_range", "title": "三昧真火·域 +10%", "description": "三昧真火爆发范围倍率提高 10%（上限 ×2.2）。"})
+
 	# W213: 孙悟空专属升级池（仅在 character_base 是 SunWukongV2 时添加）
 	if _character_base is SunWukongV2:
 		var swk := _character_base as SunWukongV2
@@ -703,6 +736,63 @@ func _apply_upgrade(upgrade_id: StringName) -> void:
 					n.burst_damage_bonus += 10.0
 			_:
 				push_warning("Unknown Sun Wukong upgrade: %s" % id_str)
+				return
+		upgrade_applied.emit(upgrade_id)
+		return
+
+	# N05: 哪吒专属升级（nezha_* id）
+	if id_str.begins_with("nezha_"):
+		if not (_character_base is Nezha):
+			push_warning("Nezha upgrade %s but no Nezha attached" % id_str)
+			return
+		var nezha_char := _character_base as Nezha
+		match id_str:
+			"nezha_fire_spear_damage":
+				var n := get_node_or_null("FireSpearWeapon")
+				if n != null:
+					n.damage += 4.0
+			"nezha_fire_spear_cooldown":
+				var n := get_node_or_null("FireSpearWeapon")
+				if n != null:
+					n.cooldown = maxf(n.cooldown * 0.9, WeaponBase.MIN_COOLDOWN)
+			"nezha_fire_spear_burn":
+				var n := get_node_or_null("FireSpearWeapon")
+				if n != null:
+					n.burn_dps += 3.0
+			"nezha_unlock_hun_tian_ling":
+				var n := get_node_or_null("HunTianLingWeapon")
+				if n is WeaponBase:
+					_set_weapon_unlocked(n as WeaponBase, true)
+			"nezha_hun_tian_ling_radius":
+				var n := get_node_or_null("HunTianLingWeapon")
+				if n != null:
+					n.radius += 20.0
+			"nezha_hun_tian_ling_dot":
+				var n := get_node_or_null("HunTianLingWeapon")
+				if n != null:
+					n.dot_dps += 2.0
+			"nezha_hun_tian_ling_cooldown":
+				var n := get_node_or_null("HunTianLingWeapon")
+				if n != null:
+					n.cooldown = maxf(n.cooldown * 0.9, WeaponBase.MIN_COOLDOWN)
+			"nezha_unlock_qian_kun":
+				var n := get_node_or_null("QianKunCircleWeapon")
+				if n is WeaponBase:
+					_set_weapon_unlocked(n as WeaponBase, true)
+			"nezha_qian_kun_damage":
+				var n := get_node_or_null("QianKunCircleWeapon")
+				if n != null:
+					n.damage += 5.0
+			"nezha_qian_kun_cooldown":
+				var n := get_node_or_null("QianKunCircleWeapon")
+				if n != null:
+					n.cooldown = maxf(n.cooldown * 0.9, WeaponBase.MIN_COOLDOWN)
+			"nezha_true_fire_charge":
+				nezha_char.fire_charge_amount = 15.0
+			"nezha_true_fire_burst_range":
+				nezha_char.fire_burst_range_mult = minf(nezha_char.fire_burst_range_mult + 0.1, 2.2)
+			_:
+				push_warning("Unknown Nezha upgrade: %s" % id_str)
 				return
 		upgrade_applied.emit(upgrade_id)
 		return

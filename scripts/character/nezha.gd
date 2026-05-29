@@ -95,6 +95,19 @@ func get_fire_range_mult() -> float:
 	return fire_burst_range_mult
 
 
-## 升级池过滤（N05 接入时返回哪吒专属升级 ID，先返回 [] 使用默认池）
+## 升级池过滤（N05：返回哪吒专属升级 ID，player.gd 自动补充通用 4 项）
 func _get_allowed_upgrade_ids() -> Array[String]:
-	return []
+	return [
+		"nezha_fire_spear_damage",
+		"nezha_fire_spear_cooldown",
+		"nezha_fire_spear_burn",
+		"nezha_hun_tian_ling_radius",
+		"nezha_hun_tian_ling_dot",
+		"nezha_hun_tian_ling_cooldown",
+		"nezha_qian_kun_damage",
+		"nezha_qian_kun_cooldown",
+		"nezha_true_fire_charge",
+		"nezha_true_fire_burst_range",
+		"nezha_unlock_hun_tian_ling",
+		"nezha_unlock_qian_kun",
+	]
