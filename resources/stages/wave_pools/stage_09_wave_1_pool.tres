@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WavePoolConfig" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/system/wave_pool_config.gd" id="1_wpc_script"]
+[ext_resource type="Resource" path="res://resources/enemies/sky_soldier.tres" id="2_sky_soldier"]
+[ext_resource type="Resource" path="res://resources/enemies/thunder_bird.tres" id="3_thunder_bird"]
+[ext_resource type="Resource" path="res://resources/enemies/heaven_crossbow.tres" id="4_heaven_crossbow"]
+
+[resource]
+script = ExtResource("1_wpc_script")
+archetypes = [ExtResource("2_sky_soldier"), ExtResource("3_thunder_bird"), ExtResource("4_heaven_crossbow")]
+weights = [2.5, 2.5, 1.0]
