@@ -284,6 +284,17 @@ func _setup_energy_bar() -> void:
 	_energy_bar.max_value = config.get("max_value", 30.0)
 	_energy_bar.value = 0.0
 	_energy_label.text = config.get("label", "能量")
+	# NEZHA-PRE: 应用 energy_bar_config.fill_color 到 ProgressBar 填充
+	# （哪吒橙红 / 杨戬天蓝 / 各角色能量条视觉区分；无 fill_color 则保持默认）
+	var fill_color = config.get("fill_color", null)
+	if fill_color != null and fill_color is Color:
+		var fill_style := StyleBoxFlat.new()
+		fill_style.bg_color = fill_color
+		fill_style.corner_radius_top_left = 2
+		fill_style.corner_radius_top_right = 2
+		fill_style.corner_radius_bottom_left = 2
+		fill_style.corner_radius_bottom_right = 2
+		_energy_bar.add_theme_stylebox_override("fill", fill_style)
 	# Bug A fix: explicitly restore visibility when config is valid (handles character switch)
 	_energy_panel.visible = true
 	if character_base.has_signal("energy_full_triggered"):
@@ -297,7 +308,13 @@ func _update_energy_bar() -> void:
 	# Bug C fix: use cached reference instead of per-frame get() reflection
 	if _cached_character_base == null:
 		return
-	var current = _cached_character_base.get("current_lingqi")
+	# NEZHA-PRE: read value_field from energy_bar_config for generic character support.
+	# Falls back to "current_lingqi" if no value_field key is present (legacy safety).
+	var config = _cached_character_base.get("energy_bar_config")
+	var value_field: String = "current_lingqi"
+	if config != null and config is Dictionary:
+		value_field = config.get("value_field", "current_lingqi")
+	var current = _cached_character_base.get(value_field)
 	if current == null:
 		return
 	_energy_bar.value = current
