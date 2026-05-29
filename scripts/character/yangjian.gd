@@ -79,6 +79,19 @@ func consume_heaven_eye() -> bool:
 	return true
 
 
-## 升级池过滤（Y05 任务接入升级项后填充）
+## 升级池过滤（Y05：返回杨戬专属升级 ID，player.gd 自动补充通用 4 项）
 func _get_allowed_upgrade_ids() -> Array[String]:
-	return []
+	return [
+		"yangjian_dao_damage",
+		"yangjian_dao_cooldown",
+		"yangjian_dao_arc",
+		"yangjian_dog_damage",
+		"yangjian_dog_slow",
+		"yangjian_dog_cooldown",
+		"yangjian_eye_fire_damage",
+		"yangjian_eye_fire_cooldown",
+		"yangjian_eye_charge_kill",
+		"yangjian_eye_charge_time",
+		"yangjian_unlock_xiao_tian_quan",
+		"yangjian_unlock_heaven_eye_fire",
+	]

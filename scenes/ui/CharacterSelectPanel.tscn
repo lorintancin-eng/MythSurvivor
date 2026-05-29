@@ -1,14 +1,18 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/character_select_panel.gd" id="1_character_select_panel_script"]
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="3_cultivator_scene"]
 [ext_resource type="PackedScene" path="res://scenes/player/PlayerSunWukong.tscn" id="4_sun_wukong_scene"]
+[ext_resource type="PackedScene" path="res://scenes/player/PlayerNezha.tscn" id="5_nezha_scene"]
+[ext_resource type="PackedScene" path="res://scenes/player/PlayerYangJian.tscn" id="6_yangjian_scene"]
 
 [node name="CharacterSelectPanel" type="CanvasLayer"]
 layer = 50
 script = ExtResource("1_character_select_panel_script")
 cultivator_scene = ExtResource("3_cultivator_scene")
 sun_wukong_scene = ExtResource("4_sun_wukong_scene")
+nezha_scene = ExtResource("5_nezha_scene")
+yangjian_scene = ExtResource("6_yangjian_scene")
 
 [node name="Background" type="ColorRect" parent="."]
 anchor_right = 1.0
@@ -31,13 +35,28 @@ text = "择神而行"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 28
 
-[node name="SunWukongButton" type="Button" parent="Background/CenterContainer/VBox"]
+[node name="GridContainer" type="GridContainer" parent="Background/CenterContainer/VBox"]
+columns = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+
+[node name="SunWukongButton" type="Button" parent="Background/CenterContainer/VBox/GridContainer"]
 text = "弼马温（孙悟空）"
-custom_minimum_size = Vector2(260, 48)
+custom_minimum_size = Vector2(190, 48)
 
-[node name="CultivatorButton" type="Button" parent="Background/CenterContainer/VBox"]
+[node name="CultivatorButton" type="Button" parent="Background/CenterContainer/VBox/GridContainer"]
 text = "修行者"
-custom_minimum_size = Vector2(260, 48)
+custom_minimum_size = Vector2(190, 48)
 
-[connection signal="pressed" from="Background/CenterContainer/VBox/SunWukongButton" to="." method="_on_sun_wukong_button_pressed"]
-[connection signal="pressed" from="Background/CenterContainer/VBox/CultivatorButton" to="." method="_on_cultivator_button_pressed"]
+[node name="NezhaButton" type="Button" parent="Background/CenterContainer/VBox/GridContainer"]
+text = "火劫童子（哪吒）"
+custom_minimum_size = Vector2(190, 48)
+
+[node name="YangJianButton" type="Button" parent="Background/CenterContainer/VBox/GridContainer"]
+text = "二郎真君（杨戬）"
+custom_minimum_size = Vector2(190, 48)
+
+[connection signal="pressed" from="Background/CenterContainer/VBox/GridContainer/SunWukongButton" to="." method="_on_sun_wukong_button_pressed"]
+[connection signal="pressed" from="Background/CenterContainer/VBox/GridContainer/CultivatorButton" to="." method="_on_cultivator_button_pressed"]
+[connection signal="pressed" from="Background/CenterContainer/VBox/GridContainer/NezhaButton" to="." method="_on_nezha_button_pressed"]
+[connection signal="pressed" from="Background/CenterContainer/VBox/GridContainer/YangJianButton" to="." method="_on_yangjian_button_pressed"]

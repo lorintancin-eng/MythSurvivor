@@ -1,14 +1,16 @@
 class_name CharacterSelectPanel
 extends CanvasLayer
 
-## 角色选择面板（v0.3）
+## 角色选择面板（v0.6）
 ##
-## 主菜单启动时弹出，让玩家选择角色（孙悟空 / 修行者）。
+## 主菜单启动时弹出，让玩家选择角色（孙悟空 / 修行者 / 哪吒 / 杨戬）。
 ## 选择后实例化对应角色场景，强制 name = "Player" 后 add_child 到 Main，
 ## 调用 HUD._connect_player() 重新绑定 HUD，最后 queue_free 自身。
 
 @export var cultivator_scene: PackedScene
 @export var sun_wukong_scene: PackedScene
+@export var nezha_scene: PackedScene
+@export var yangjian_scene: PackedScene
 
 
 func _on_sun_wukong_button_pressed() -> void:
@@ -20,6 +22,20 @@ func _on_sun_wukong_button_pressed() -> void:
 
 func _on_cultivator_button_pressed() -> void:
 	_select_character(cultivator_scene)
+
+
+func _on_nezha_button_pressed() -> void:
+	if nezha_scene == null:
+		push_warning("CharacterSelectPanel: nezha_scene 未配置")
+		return
+	_select_character(nezha_scene)
+
+
+func _on_yangjian_button_pressed() -> void:
+	if yangjian_scene == null:
+		push_warning("CharacterSelectPanel: yangjian_scene 未配置")
+		return
+	_select_character(yangjian_scene)
 
 
 func _select_character(scene: PackedScene) -> void:

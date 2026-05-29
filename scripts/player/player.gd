@@ -581,6 +581,40 @@ func _get_upgrade_pool() -> Array[Dictionary]:
 		if nezha_char.fire_burst_range_mult < 2.2:
 			pool.append({"id": "nezha_true_fire_burst_range", "title": "三昧真火·域 +10%", "description": "三昧真火爆发范围倍率提高 10%（上限 ×2.2）。"})
 
+	# Y05: 杨戬专属升级池（仅在 character_base 是 YangJian 时添加）
+	if _character_base is YangJian:
+		var yj := _character_base as YangJian
+
+		# 三尖两刃刀强化（始终可选）
+		var dao_node := get_node_or_null("SanJianDaoWeapon")
+		if dao_node != null:
+			pool.append({"id": "yangjian_dao_damage", "title": "三尖刀·破 +4", "description": "三尖两刃刀每段命中伤害提高 4。"})
+			pool.append({"id": "yangjian_dao_cooldown", "title": "三尖刀·疾 -10%", "description": "三尖两刃刀出招间隔缩短 10%。"})
+			pool.append({"id": "yangjian_dao_arc", "title": "三尖刀·广 +15°", "description": "三尖两刃刀扇形角度扩大 15 度。"})
+
+		# 哮天犬：未解锁显示解锁项，已解锁显示强化项
+		var xtq_node := get_node_or_null("XiaoTianQuanWeapon")
+		if xtq_node == null or xtq_node.process_mode == Node.PROCESS_MODE_DISABLED:
+			pool.append({"id": "yangjian_unlock_xiao_tian_quan", "title": "哮天犬·觉醒", "description": "解锁哮天犬，常驻咬击敌人并减速。"})
+		else:
+			pool.append({"id": "yangjian_dog_damage", "title": "哮天犬·噬 +5", "description": "哮天犬咬击伤害提高 5。"})
+			pool.append({"id": "yangjian_dog_slow", "title": "哮天犬·滞 -10%", "description": "哮天犬减速幅度提高 10%。"})
+			pool.append({"id": "yangjian_dog_cooldown", "title": "哮天犬·迅 -10%", "description": "哮天犬咬击间隔缩短 10%。"})
+
+		# 天眼真火：等级>=3 才出现，未解锁显示解锁项，已解锁显示强化项
+		var hef_node := get_node_or_null("HeavenEyeFireWeapon")
+		if hef_node == null or hef_node.process_mode == Node.PROCESS_MODE_DISABLED:
+			if level >= 3:
+				pool.append({"id": "yangjian_unlock_heaven_eye_fire", "title": "天眼真火·觉醒", "description": "解锁天眼真火，全屏锁定最低血量敌人连续灼烧。"})
+		else:
+			pool.append({"id": "yangjian_eye_fire_damage", "title": "天眼真火·焚 +8", "description": "天眼真火总伤害提高 8。"})
+			pool.append({"id": "yangjian_eye_fire_cooldown", "title": "天眼真火·速 -10%", "description": "天眼真火冷却缩短 10%。"})
+
+		# 天眼槽强化（始终可选）
+		pool.append({"id": "yangjian_eye_charge_kill", "title": "天眼·猎杀 +5", "description": "击杀小怪时天眼槽充能提高 5。"})
+		if yj.eye_time_rate < 5.0:
+			pool.append({"id": "yangjian_eye_charge_time", "title": "天眼·积蓄 +1/s", "description": "天眼槽每秒自动充能提高 1（上限 5/s）。"})
+
 	# W213: 孙悟空专属升级池（仅在 character_base 是 SunWukongV2 时添加）
 	if _character_base is SunWukongV2:
 		var swk := _character_base as SunWukongV2
@@ -793,6 +827,68 @@ func _apply_upgrade(upgrade_id: StringName) -> void:
 				nezha_char.fire_burst_range_mult = minf(nezha_char.fire_burst_range_mult + 0.1, 2.2)
 			_:
 				push_warning("Unknown Nezha upgrade: %s" % id_str)
+				return
+		upgrade_applied.emit(upgrade_id)
+		return
+
+	# Y05: 杨戬专属升级（yangjian_* id）
+	if id_str.begins_with("yangjian_"):
+		if not (_character_base is YangJian):
+			push_warning("YangJian upgrade %s but no YangJian attached" % id_str)
+			return
+		var yj_char := _character_base as YangJian
+		match id_str:
+			"yangjian_dao_damage":
+				var n := get_node_or_null("SanJianDaoWeapon")
+				if n != null:
+					n.damage += 4.0
+			"yangjian_dao_cooldown":
+				var n := get_node_or_null("SanJianDaoWeapon")
+				if n != null:
+					n.cooldown = maxf(n.cooldown * 0.9, WeaponBase.MIN_COOLDOWN)
+			"yangjian_dao_arc":
+				var n := get_node_or_null("SanJianDaoWeapon")
+				if n != null:
+					n._arc_deg = minf(n._arc_deg + 15.0, 180.0)
+			"yangjian_unlock_xiao_tian_quan":
+				var n := get_node_or_null("XiaoTianQuanWeapon")
+				if n is WeaponBase:
+					_set_weapon_unlocked(n as WeaponBase, true)
+			"yangjian_dog_damage":
+				var n := get_node_or_null("XiaoTianQuanWeapon")
+				if n != null:
+					n._unit_damage += 5.0
+					n._sync_units()
+			"yangjian_dog_slow":
+				var n := get_node_or_null("XiaoTianQuanWeapon")
+				if n != null:
+					# slow_multiplier 越小减速越强（1.0=无减速，0.0=完全停止）
+					n._unit_slow_mult = maxf(n._unit_slow_mult - 0.1, 0.1)
+					n._sync_units()
+			"yangjian_dog_cooldown":
+				var n := get_node_or_null("XiaoTianQuanWeapon")
+				if n != null:
+					for unit in n._units:
+						if is_instance_valid(unit) and "attack_interval" in unit:
+							unit.attack_interval = maxf(unit.attack_interval * 0.9, WeaponBase.MIN_COOLDOWN)
+			"yangjian_unlock_heaven_eye_fire":
+				var n := get_node_or_null("HeavenEyeFireWeapon")
+				if n is WeaponBase:
+					_set_weapon_unlocked(n as WeaponBase, true)
+			"yangjian_eye_fire_damage":
+				var n := get_node_or_null("HeavenEyeFireWeapon")
+				if n != null:
+					n._total_damage += 8.0
+			"yangjian_eye_fire_cooldown":
+				var n := get_node_or_null("HeavenEyeFireWeapon")
+				if n != null:
+					n.cooldown = maxf(n.cooldown * 0.9, WeaponBase.MIN_COOLDOWN)
+			"yangjian_eye_charge_kill":
+				yj_char.eye_kill_charge += 5.0
+			"yangjian_eye_charge_time":
+				yj_char.eye_time_rate = minf(yj_char.eye_time_rate + 1.0, 5.0)
+			_:
+				push_warning("Unknown YangJian upgrade: %s" % id_str)
 				return
 		upgrade_applied.emit(upgrade_id)
 		return

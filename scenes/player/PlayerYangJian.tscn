@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player_script"]
 [ext_resource type="Script" path="res://scripts/weapon/yangjian/san_jian_dao_weapon.gd" id="2_san_jian_dao_script"]
 [ext_resource type="Script" path="res://scripts/weapon/yangjian/xiao_tian_quan_weapon.gd" id="3_xiao_tian_quan_script"]
 [ext_resource type="Script" path="res://scripts/character/yangjian.gd" id="4_yangjian_script"]
+[ext_resource type="Script" path="res://scripts/weapon/yangjian/heaven_eye_fire_weapon.gd" id="5_heaven_eye_fire_script"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player_body"]
 radius = 12.0
@@ -35,6 +36,10 @@ script = ExtResource("2_san_jian_dao_script")
 [node name="XiaoTianQuanWeapon" type="Node2D" parent="."]
 process_mode = 4
 script = ExtResource("3_xiao_tian_quan_script")
+
+[node name="HeavenEyeFireWeapon" type="Node2D" parent="."]
+process_mode = 4
+script = ExtResource("5_heaven_eye_fire_script")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 enabled = true
