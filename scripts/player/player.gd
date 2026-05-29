@@ -878,3 +878,12 @@ func _clear_terrain_effects() -> void:
 		if effect_type == 0:
 			_speed_multiplier /= TERRAIN_SLOW_MULTIPLIER
 	_active_terrain_effects.clear()
+
+
+## GAP-06：跨关卡过渡时调用（由 StageDirector.load_stage_config 触发）
+## 重置主动技能 cooldown，让玩家进入新关卡时所有技能立即可用（设计稿 §5.4）
+## 同时清除地形 buff（避免上关 SLOW 残留）
+func on_stage_transition() -> void:
+	_clear_terrain_effects()
+	if _character_base is ActiveSkillCharacter:
+		(_character_base as ActiveSkillCharacter).reset_skill_cooldowns()

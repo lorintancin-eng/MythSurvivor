@@ -204,3 +204,13 @@ func reduce_skill_max_cd(slot: int, amount: float) -> void:
 	_skill_cooldowns[slot] = minf(_skill_cooldowns[slot], _skill_max_cds[slot])
 	# 通知 HUD 更新 max_cd 显示
 	skill_cooldown_changed.emit(slot, _skill_cooldowns[slot], _skill_max_cds[slot], _skill_unlocked[slot])
+
+
+## GAP-06：重置所有已解锁技能的 cooldown 为 0（跨关卡时调用）
+## 让玩家进入新关卡时所有主动技能立即可用
+func reset_skill_cooldowns() -> void:
+	for slot in range(4):
+		if _skill_cooldowns[slot] > 0.0:
+			_skill_cooldowns[slot] = 0.0
+			# 通知 HUD 更新（只对 cd > 0 的槽 emit，减少无效信号）
+			skill_cooldown_changed.emit(slot, 0.0, _skill_max_cds[slot], _skill_unlocked[slot])
