@@ -115,6 +115,16 @@ func _on_body_exited(body: Node) -> void:
 	body.remove_terrain_effect(effect_type)
 
 
+func _exit_tree() -> void:
+	# 节点销毁时，若玩家仍在区域内，移除其 buff（防 BURN/SLOW/SNARE/CURSE 残留）
+	# BLINK 是一次性触发，无需处理
+	if effect_type == Type.BLINK:
+		return
+	for body in get_overlapping_bodies():
+		if body.is_in_group("player") and body.has_method("remove_terrain_effect"):
+			body.remove_terrain_effect(effect_type)
+
+
 func _do_blink(player: Node) -> void:
 	if not player is Node2D:
 		return

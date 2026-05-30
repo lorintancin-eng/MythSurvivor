@@ -379,6 +379,9 @@ func _enter_enrage() -> void:
 	_is_enraged = true
 	move_speed *= enrage_speed_multiplier
 	damage *= enrage_damage_multiplier
+	wind_slash_damage *= enrage_damage_multiplier
+	rockfall_damage *= enrage_damage_multiplier
+	vortex_rock_damage *= enrage_damage_multiplier
 	# 收紧各计时器到暴怒 CD 上限
 	_wind_slash_timer = minf(_wind_slash_timer, wind_slash_cooldown * enrage_cd_multiplier * 0.5)
 	_rockfall_timer = minf(_rockfall_timer, rockfall_cooldown * enrage_cd_multiplier * 0.5)

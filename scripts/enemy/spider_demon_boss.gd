@@ -412,6 +412,9 @@ func _enter_enrage() -> void:
 	_is_enraged = true
 	move_speed *= enrage_speed_multiplier
 	damage *= enrage_damage_multiplier
+	silk_damage *= enrage_damage_multiplier
+	poison_dps *= enrage_damage_multiplier
+	bind_damage *= enrage_damage_multiplier
 	_silk_timer = minf(_silk_timer, silk_cooldown * enrage_cd_multiplier * 0.5)
 	_poison_timer = minf(_poison_timer, poison_cooldown * enrage_cd_multiplier * 0.5)
 	_summon_timer = minf(_summon_timer, summon_cooldown * enrage_cd_multiplier * 0.5)

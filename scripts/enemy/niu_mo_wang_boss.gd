@@ -414,6 +414,8 @@ func _enter_enrage() -> void:
 	move_speed *= enrage_speed_multiplier
 	damage *= enrage_damage_multiplier
 	charge_damage *= enrage_damage_multiplier
+	lava_burst_damage *= enrage_damage_multiplier
+	stomp_burn_dps *= enrage_damage_multiplier
 	# 收紧各计时器到暴怒 CD 上限
 	_charge_timer = minf(_charge_timer, charge_cooldown * enrage_cd_multiplier * 0.5)
 	_stomp_timer = minf(_stomp_timer, stomp_cooldown * enrage_cd_multiplier * 0.5)

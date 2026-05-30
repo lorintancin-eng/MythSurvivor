@@ -391,6 +391,9 @@ func _enter_enrage() -> void:
 	_is_enraged = true
 	move_speed *= enrage_speed_multiplier
 	damage *= enrage_damage_multiplier
+	liudao_fire_damage *= enrage_damage_multiplier
+	chain_damage *= enrage_damage_multiplier
+	judgment_fire_damage *= enrage_damage_multiplier
 	_liudao_timer = minf(_liudao_timer, liudao_cooldown * enrage_cd_multiplier * 0.5)
 	_chain_timer = minf(_chain_timer, chain_cooldown * enrage_cd_multiplier * 0.5)
 	_summon_timer = minf(_summon_timer, summon_cooldown * enrage_cd_multiplier * 0.5)

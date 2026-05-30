@@ -367,6 +367,10 @@ func _enter_enrage() -> void:
 	_is_enraged = true
 	move_speed *= enrage_speed_multiplier
 	damage *= enrage_damage_multiplier
+	thunder_strike_damage *= enrage_damage_multiplier
+	formation_thunder_damage *= enrage_damage_multiplier
+	sweep_damage *= enrage_damage_multiplier
+	tribulation_damage *= enrage_damage_multiplier
 	# 收紧各计时器到暴怒 CD 上限
 	_thunder_timer = minf(_thunder_timer, thunder_strike_cooldown * enrage_cd_multiplier * 0.5)
 	_formation_timer = minf(_formation_timer, formation_cooldown * enrage_cd_multiplier * 0.5)

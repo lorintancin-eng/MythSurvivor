@@ -490,8 +490,10 @@ func _enter_enrage() -> void:
 	damage *= enrage_damage_multiplier
 	sweep_damage *= enrage_damage_multiplier
 	thunder_fire_damage *= enrage_damage_multiplier
+	thunder_fire_burn_dps *= enrage_damage_multiplier
 	wing_rock_damage *= enrage_damage_multiplier
 	dairi_thunder_damage *= enrage_damage_multiplier
+	dairi_zone_burn_dps *= enrage_damage_multiplier
 	# 收紧各计时器到暴怒 CD 上限
 	_sweep_timer = minf(_sweep_timer, sweep_cooldown * enrage_cd_multiplier * 0.5)
 	_thunder_fire_timer = minf(_thunder_fire_timer, thunder_fire_cooldown * enrage_cd_multiplier * 0.5)
@@ -525,6 +527,10 @@ func _cleanup_effects() -> void:
 		_player.call("remove_terrain_effect", TerrainEffect.Type.SNARE)
 	_snare_active = false
 	_push_active = false
+	# 清除残留 BURN/雷域地板，防止 Victory 过渡中继续伤害玩家
+	for node in get_tree().get_nodes_in_group("terrain_effects"):
+		if is_instance_valid(node):
+			node.queue_free()
 
 
 # ========== 工具函数 ==========
