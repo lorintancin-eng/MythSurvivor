@@ -93,8 +93,9 @@ func _sync_units() -> void:
 		_spawn_unit()
 
 	# 超出时（升级降级场景，实际不发生）移除多余
+	# 显式类型：Array[T].pop_back() 返回 Variant（Godot 限制），避免推断 warning-as-error
 	while _units.size() > _unit_count:
-		var surplus := _units.pop_back()
+		var surplus: XiaoTianQuanUnit = _units.pop_back()
 		if is_instance_valid(surplus):
 			surplus.queue_free()
 
