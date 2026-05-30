@@ -16,6 +16,9 @@ var _bodies_inside: Array = []
 
 func _ready() -> void:
 	collision_mask = 1
+	# 加入 terrain_effects 组，让 StageDirector._clear_active_objects 切关时清理
+	# （避免静态放置的水流区跨关泄漏，QA 套件 F2 风险防御）
+	add_to_group("terrain_effects")
 	body_entered.connect(func(b: Node) -> void:
 		if b.is_in_group("player"):
 			_bodies_inside.append(b)

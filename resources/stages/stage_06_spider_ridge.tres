@@ -49,4 +49,4 @@ background_color = Color(0.06, 0.02, 0.10, 1)
 terrain_effect_count = 0
 terrain_effect_types = []
 breakable_count = 0
-viewport_reduction_factor = 0.6
+viewport_reduction_factor = 1.0
